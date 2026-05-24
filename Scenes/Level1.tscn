@@ -1,0 +1,70 @@
+[gd_scene format=3 uid="uid://btue6xhnnuhca"]
+
+[ext_resource type="Texture2D" uid="uid://dcp4avsc6u517" path="res://2D models/back.png" id="1_oiua3"]
+[ext_resource type="Script" uid="uid://dyhmtft2gte1e" path="res://Scripts/DialogSystem.cs" id="2_q12u6"]
+[ext_resource type="Texture2D" uid="uid://bmgo5awb68h7w" path="res://Interface/mouse.jpg" id="3_joc8x"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_q12u6"]
+font_size = 24
+
+[node name="Level1" type="Node2D" unique_id=1913138211]
+
+[node name="Background" type="TextureRect" parent="." unique_id=484632702]
+offset_right = 1152.0
+offset_bottom = 648.0
+texture = ExtResource("1_oiua3")
+expand_mode = 2
+
+[node name="DialogSystem" type="CanvasLayer" parent="." unique_id=1411328794 node_paths=PackedStringArray("_dialogContainer", "_speakerLabel", "_messageLabel", "_fadePanel", "_clickIndicator")]
+script = ExtResource("2_q12u6")
+_dialogContainer = NodePath("Panel")
+_speakerLabel = NodePath("Panel/SpeakerLabel")
+_messageLabel = NodePath("Panel/MessageLabel")
+_fadePanel = NodePath("FadePanel")
+_clickIndicator = NodePath("Panel/ClickIndicator")
+
+[node name="FadePanel" type="ColorRect" parent="DialogSystem" unique_id=651908066]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Panel" type="Panel" parent="DialogSystem" unique_id=456744764]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 444.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SpeakerLabel" type="Label" parent="DialogSystem/Panel" unique_id=2012561802]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = 485.0
+offset_bottom = 55.0
+label_settings = SubResource("LabelSettings_q12u6")
+
+[node name="MessageLabel" type="RichTextLabel" parent="DialogSystem/Panel" unique_id=1751762678]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 55.0
+offset_right = 485.0
+offset_bottom = 165.0
+theme_override_font_sizes/normal_font_size = 18
+fit_content = true
+scroll_active = false
+
+[node name="ClickIndicator" type="TextureRect" parent="DialogSystem/Panel" unique_id=1122868343]
+visible = false
+layout_mode = 0
+offset_left = 470.0
+offset_top = 170.0
+offset_right = 486.0
+offset_bottom = 186.0
+texture = ExtResource("3_joc8x")
+expand_mode = 1
