@@ -14,9 +14,22 @@ public partial class DialogSystem : CanvasLayer
     [Export] private float _cameraMoveDuration = 1.5f;
     [Export] private float _pauseBetweenLevels = 0.5f;
     
+    // Позиции для камеры
+    [Export] private Vector2 _firstCameraPosition = new Vector2(1350, 559);
+    [Export] private Vector2 _originalCameraZoom = new Vector2(1.0f, 1.0f);
+    [Export] private Vector2 _reducedCameraZoom = new Vector2(0.5f, 0.5f); // уменьшенный зум в 2 раза
+    
+    // Ссылки на игрока и камеру
     private Camera2D _gameCamera;
+    private CharacterBody2D _player;
     private Node2D _mainNode;
     private List<Node2D> _levels = new List<Node2D>();
+    
+    // Позиционирование диалога
+    [Export] private bool _centerBottom = true;
+    [Export] private bool _leftBottom = false;
+    [Export] private bool _rightBottom = false;
+    [Export] private int _margin = 20;
     
     private Queue<DialogLine> _dialogQueue = new Queue<DialogLine>();
     private bool _isTyping = false;
@@ -26,7 +39,11 @@ public partial class DialogSystem : CanvasLayer
     private bool _isTransitioning = false;
     private int _currentCharIndex = 0;
     private string _currentTypingText = "";
-    private int _currentLevelIndex = 0;
+    private bool _cameraReturned = false;
+    private bool _cameraAttachedToPlayer = false;
+    
+    // Скрипт следования камеры (если есть)
+    private object _cameraFollowScript;
     
     public override void _Ready()
     {
@@ -52,6 +69,20 @@ public partial class DialogSystem : CanvasLayer
         {
             GD.PrintErr("Camera2D not found in Main!");
             return;
+        }
+        
+        // Сохраняем скрипт следования камеры (если есть)
+        if (_gameCamera.HasMethod("FollowPlayer"))
+        {
+            _cameraFollowScript = _gameCamera;
+        }
+        
+        // Поиск игрока в Main сцене
+        _player = _mainNode.GetNodeOrNull<CharacterBody2D>("Player");
+        
+        if (_player == null)
+        {
+            GD.PrintErr("Player not found in Main!");
         }
         
         // Находим все уровни
@@ -93,14 +124,12 @@ public partial class DialogSystem : CanvasLayer
     
     private void LoadDialogues()
     {
-        // ДИАЛОГИ ДЛЯ ПЕРВОГО УРОВНЯ
-        AddDialogue("Зевс(гг, персонаж):", "-Как же я устал от этой работы , хочется спокойно быть дома с детьми а не убивать за деньги , ты меня понимаешь?");
-        AddDialogue("бармен:", "-Дружище , тебе нужно больше отдыхать , может выпишешь ещё?");
-        AddDialogue("Система", "После того как зевс выпивает ещё , к нему подсаживается работяга и начинает разговор.");
-        AddDialogue("работяга:", "-Привет , я услышал , что ты работаешь киллером , сможешь помочь мне решить одно дельце , в долгу не останусь?");
-        AddDialogue("Зевс(гг, персонаж):", "-Ну выкладывай.");
-        AddDialogue("работяга:", "-Мою сестру за долги похитила корпорация и требует выкуп , ты не подумай , деньги есть , но я не хочу их отдавать , сможешь решить проблему?");
-        AddDialogue("Зевс(гг, персонаж):", "-Как нехуй делать.");
+        AddDialogue("Маг", "Приветствую, путник!");
+        AddDialogue("Маг", "Добро пожаловать в мир приключений!");
+        AddDialogue("Маг", "Твоё путешествие только начинается.");
+        AddDialogue("Герой", "Я готов к испытаниям!");
+        AddDialogue("Маг", "Отлично! Тогда вперёд!");
+        AddDialogue("Маг", "Удачи тебе на этом пути!");
     }
     
     private void AddDialogue(string speaker, string message)
@@ -108,18 +137,49 @@ public partial class DialogSystem : CanvasLayer
         _dialogQueue.Enqueue(new DialogLine(speaker, message));
     }
     
+    private void PositionDialogContainer()
+    {
+        if (_dialogContainer == null) return;
+        
+        var viewportSize = GetViewport().GetVisibleRect().Size;
+        float dialogWidth = _dialogContainer.Size.X;
+        float dialogHeight = _dialogContainer.Size.Y;
+        
+        if (_centerBottom)
+        {
+            _dialogContainer.Position = new Vector2(
+                (viewportSize.X - dialogWidth) / 2,
+                viewportSize.Y - dialogHeight - _margin
+            );
+        }
+        else if (_leftBottom)
+        {
+            _dialogContainer.Position = new Vector2(_margin, viewportSize.Y - dialogHeight - _margin);
+        }
+        else if (_rightBottom)
+        {
+            _dialogContainer.Position = new Vector2(viewportSize.X - dialogWidth - _margin, viewportSize.Y - dialogHeight - _margin);
+        }
+        else
+        {
+            _dialogContainer.Position = new Vector2(
+                (viewportSize.X - dialogWidth) / 2,
+                viewportSize.Y - dialogHeight - _margin
+            );
+        }
+    }
+    
     private async void StartDialog()
     {
         if (_dialogContainer == null) return;
         
+        PositionDialogContainer();
         _dialogContainer.Visible = true;
-        _dialogContainer.Position = new Vector2(-_dialogContainer.Size.X, _dialogContainer.Position.Y);
         
         _currentTween = CreateTween();
         _currentTween.SetTrans(Tween.TransitionType.Back);
         _currentTween.SetEase(Tween.EaseType.Out);
         _currentTween.TweenProperty(_dialogContainer, "modulate:a", 1.0f, 0.5f);
-        _currentTween.Parallel().TweenProperty(_dialogContainer, "position:x", 0, 0.5f);
         
         await ToSignal(_currentTween, Tween.SignalName.Finished);
         
@@ -158,7 +218,7 @@ public partial class DialogSystem : CanvasLayer
     {
         if (_dialogQueue.Count == 0)
         {
-            EndDialogAndMoveThroughLevels();
+            EndDialogAndMoveCamera();
             return;
         }
         
@@ -228,7 +288,7 @@ public partial class DialogSystem : CanvasLayer
         }
     }
     
-    private async void EndDialogAndMoveThroughLevels()
+    private async void EndDialogAndMoveCamera()
     {
         _isTransitioning = true;
         _canProceed = false;
@@ -246,49 +306,7 @@ public partial class DialogSystem : CanvasLayer
             _dialogContainer.Visible = false;
         }
         
-        await MoveCameraThroughLevels();
-    }
-    
-    private async Task MoveCameraThroughLevels()
-    {
-        for (int i = 0; i < _levels.Count - 1; i++)
-        {
-            Vector2 targetPosition = _levels[i + 1].GlobalPosition;
-            
-            // Затемнение
-            if (_fadePanel != null)
-            {
-                _currentTween = CreateTween();
-                _currentTween.SetTrans(Tween.TransitionType.Quad);
-                _currentTween.SetEase(Tween.EaseType.InOut);
-                _currentTween.TweenProperty(_fadePanel, "modulate:a", 1.0f, _fadeDuration);
-                await ToSignal(_currentTween, Tween.SignalName.Finished);
-            }
-            
-            // Движение камеры
-            Vector2 startPosition = _gameCamera.GlobalPosition;
-            float elapsed = 0f;
-            
-            while (elapsed < _cameraMoveDuration)
-            {
-                elapsed += (float)GetProcessDeltaTime();
-                float t = elapsed / _cameraMoveDuration;
-                _gameCamera.GlobalPosition = startPosition.Lerp(targetPosition, t);
-                await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
-            }
-            
-            _gameCamera.GlobalPosition = targetPosition;
-            
-            // Пауза перед следующим уровнем
-            await ToSignal(GetTree().CreateTimer(_pauseBetweenLevels), SceneTreeTimer.SignalName.Timeout);
-        }
-        
-        await GameComplete();
-    }
-    
-    private async Task GameComplete()
-    {
-        // Финальное затемнение
+        // 1. Затемняем экран
         if (_fadePanel != null)
         {
             _currentTween = CreateTween();
@@ -298,18 +316,138 @@ public partial class DialogSystem : CanvasLayer
             await ToSignal(_currentTween, Tween.SignalName.Finished);
         }
         
-        // Показываем экран победы
-        var winLabel = new Label();
-        winLabel.Text = "ПОБЕДА!\nВы прошли все уровни!";
-        winLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        winLabel.VerticalAlignment = VerticalAlignment.Center;
-        winLabel.AddThemeFontSizeOverride("font_size", 48);
-        _mainNode.AddChild(winLabel);
+        // 2. Перемещаем камеру на позицию 1350, 559 и уменьшаем зум в 2 раза
+        _gameCamera.GlobalPosition = _firstCameraPosition;
+        _gameCamera.Zoom = _reducedCameraZoom;
         
-        GD.Print("Поздравляем! Игра пройдена!");
+        // 3. Убираем затемнение
+        if (_fadePanel != null)
+        {
+            _currentTween = CreateTween();
+            _currentTween.SetTrans(Tween.TransitionType.Quad);
+            _currentTween.SetEase(Tween.EaseType.InOut);
+            _currentTween.TweenProperty(_fadePanel, "modulate:a", 0f, _fadeDuration);
+            await ToSignal(_currentTween, Tween.SignalName.Finished);
+        }
         
-        await ToSignal(GetTree().CreateTimer(3.0f), SceneTreeTimer.SignalName.Timeout);
-        GetTree().ReloadCurrentScene();
+        // 4. Плавно перемещаем камеру вдоль уровня 2
+        await MoveCameraThroughLevel2();
+        
+        // 5. Возвращаем камеру к игроку и прикрепляем её
+        await ReturnAndAttachCameraToPlayer();
+        
+        // 6. Камера теперь привязана к игроку, зум остаётся уменьшенным
+        GD.Print("Camera is now attached to player with zoom: " + _gameCamera.Zoom);
+    }
+    
+    private async Task MoveCameraThroughLevel2()
+    {
+        // Находим уровень 2
+        Node2D level2 = null;
+        foreach (var level in _levels)
+        {
+            if (level.Name.ToString() == "Level2")
+            {
+                level2 = level;
+                break;
+            }
+        }
+        
+        if (level2 == null)
+        {
+            GD.PrintErr("Level2 not found!");
+            return;
+        }
+        
+        // Получаем границы уровня 2
+        // Предполагаем, что уровень 2 имеет размер 1920x1080, центр в GlobalPosition
+        float levelWidth = 1920;
+        Vector2 startPosition = new Vector2(level2.GlobalPosition.X - levelWidth / 2, level2.GlobalPosition.Y);
+        Vector2 endPosition = new Vector2(level2.GlobalPosition.X + levelWidth / 2, level2.GlobalPosition.Y);
+        
+        // Устанавливаем камеру на начало уровня 2
+        _gameCamera.GlobalPosition = startPosition;
+        
+        // Плавно перемещаем камеру вдоль уровня 2
+        float elapsed = 0f;
+        float levelMoveDuration = 3.0f; // время прохода уровня 2
+        
+        while (elapsed < levelMoveDuration)
+        {
+            elapsed += (float)GetProcessDeltaTime();
+            float t = elapsed / levelMoveDuration;
+            _gameCamera.GlobalPosition = startPosition.Lerp(endPosition, t);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        }
+        
+        _gameCamera.GlobalPosition = endPosition;
+        
+        // Небольшая пауза
+        await ToSignal(GetTree().CreateTimer(0.5f), SceneTreeTimer.SignalName.Timeout);
+    }
+    
+    private async Task ReturnAndAttachCameraToPlayer()
+    {
+        if (_player == null)
+        {
+            GD.PrintErr("Player not found, cannot return camera!");
+            return;
+        }
+        
+        // Резко возвращаем камеру к игроку (без анимации)
+        _gameCamera.GlobalPosition = _player.GlobalPosition;
+        
+        // Зум остаётся уменьшенным (_reducedCameraZoom)
+        _gameCamera.Zoom = _reducedCameraZoom;
+        
+        // Небольшая задержка для стабилизации
+        await ToSignal(GetTree().CreateTimer(0.1f), SceneTreeTimer.SignalName.Timeout);
+        
+        // Прикрепляем камеру к игроку
+        AttachCameraToPlayer();
+        
+        _cameraAttachedToPlayer = true;
+    }
+    
+    private void AttachCameraToPlayer()
+    {
+        if (_player == null || _gameCamera == null) return;
+        
+        // Способ 1: Сделать камеру дочерней игрока
+        var cameraParent = _gameCamera.GetParent();
+        if (cameraParent != _player)
+        {
+            cameraParent.RemoveChild(_gameCamera);
+            _player.AddChild(_gameCamera);
+            _gameCamera.Position = Vector2.Zero; // Смещение относительно игрока
+        }
+        
+        GD.Print("Camera attached to player at position: " + _player.GlobalPosition);
+    }
+    
+    // Публичный метод для открепления камеры (если нужно)
+    public void DetachCameraFromPlayer()
+    {
+        if (_gameCamera == null) return;
+        
+        // Возвращаем камеру обратно в Main
+        var cameraParent = _gameCamera.GetParent();
+        if (cameraParent == _player)
+        {
+            cameraParent.RemoveChild(_gameCamera);
+            _mainNode.AddChild(_gameCamera);
+        }
+        
+        _cameraAttachedToPlayer = false;
+    }
+    
+    // Публичный метод для восстановления зума
+    public void ResetCameraZoom()
+    {
+        if (_gameCamera != null)
+        {
+            _gameCamera.Zoom = _originalCameraZoom;
+        }
     }
     
     public override void _ExitTree()

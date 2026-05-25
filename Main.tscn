@@ -2,7 +2,11 @@
 
 [ext_resource type="PackedScene" uid="uid://btue6xhnnuhca" path="res://Scenes/Level1.tscn" id="1_glv2v"]
 [ext_resource type="PackedScene" uid="uid://n6epqrhg8fbo" path="res://Scenes/Level2.tscn" id="2_uu6xs"]
-[ext_resource type="Texture2D" uid="uid://bmgo5awb68h7w" path="res://Interface/mouse.jpg" id="3_r0du0"]
+[ext_resource type="Texture2D" uid="uid://cab0x6i4n87cl" path="res://icon.svg" id="4_fos0i"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_uu6xs"]
+radius = 24.0
+height = 70.0
 
 [node name="Main" type="Node2D" unique_id=1398188270]
 
@@ -14,7 +18,13 @@ position = Vector2(575, 324)
 [node name="Level2" parent="." unique_id=306044500 instance=ExtResource("2_uu6xs")]
 position = Vector2(1200, 0)
 
-[node name="TextureRect" type="TextureRect" parent="Level2" unique_id=2075108750]
-offset_right = 40.0
-offset_bottom = 40.0
-texture = ExtResource("3_r0du0")
+[node name="Player" type="CharacterBody2D" parent="." unique_id=587998505]
+position = Vector2(1350, 559)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=457762163]
+shape = SubResource("CapsuleShape2D_uu6xs")
+
+[node name="Sprite2D" type="Sprite2D" parent="Player" unique_id=275021682]
+position = Vector2(0.5000038, 1.4999895)
+scale = Vector2(0.42968744, 0.5546877)
+texture = ExtResource("4_fos0i")
