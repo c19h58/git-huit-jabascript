@@ -1,16 +1,19 @@
 [gd_scene format=3 uid="uid://n6epqrhg8fbo"]
 
 [ext_resource type="Texture2D" uid="uid://drr51ppysy0h0" path="res://2D models/Back_Street.png" id="1_llwst"]
-[ext_resource type="Texture2D" uid="uid://cif2e5evccm88" path="res://2D models/Gemini_Generated_Image_93g8cz93g8cz93g8-Photoroom.png" id="2_0plju"]
+[ext_resource type="Texture2D" uid="uid://d0s1xpwgftn1p" path="res://2D models/Gemini_Generated_Image_w0n6csw0n6csw0n6-Photoroom-Photoroom.png" id="2_0plju"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_llwst"]
 size = Vector2(2663, 49)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0plju"]
-size = Vector2(247, 49)
+size = Vector2(247, 46.63466)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ms0wi"]
-size = Vector2(191, 29)
+size = Vector2(190.25, 37)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5awjf"]
+size = Vector2(25, 526.5)
 
 [node name="Level2" type="Node2D" unique_id=306044500]
 
@@ -34,20 +37,27 @@ position = Vector2(883, 309)
 metadata/_edit_lock_ = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2" unique_id=1205926080]
-position = Vector2(1480, 274)
-rotation = -0.31066862
+position = Vector2(1480.3613, 275.12598)
+rotation = -0.31066868
 shape = SubResource("RectangleShape2D_0plju")
 
 [node name="TextureRect" type="TextureRect" parent="StaticBody2D2/CollisionShape2D" unique_id=1456472300]
-offset_left = 173.93997
-offset_top = -28.176182
-offset_right = 421.08057
-offset_bottom = 21.823818
-rotation = 0.13264503
-scale = Vector2(-1, 1)
+offset_left = -106.27605
+offset_top = -170.79619
+offset_right = 370.59772
+offset_bottom = 93.94023
+rotation = 0.30892327
 texture = ExtResource("2_0plju")
 expand_mode = 1
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D2" unique_id=697894360]
-position = Vector2(1685.5, 227.5)
+position = Vector2(1684.875, 234)
 shape = SubResource("RectangleShape2D_ms0wi")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D2" unique_id=1070009160]
+position = Vector2(1734, -48.75)
+shape = SubResource("RectangleShape2D_5awjf")
+
+[node name="TextureRect" type="TextureRect" parent="StaticBody2D2/CollisionShape2D3" unique_id=112551949]
+offset_right = 40.0
+offset_bottom = 40.0
