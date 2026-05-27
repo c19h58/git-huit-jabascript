@@ -204,7 +204,7 @@ public partial class DialogSystem : CanvasLayer
         AddDialogue("Работяга", "Привет, я услышал, что ты работаешь киллером, сможешь помочь мне решить одно дельце, в долгу не останусь?");
         AddDialogue("Зевс", "Ну выкладывай");
         AddDialogue("Работяга", "Мою сестру за долги похитила корпорация и требует выкуп, ты не подумай, деньги есть, но я не хочу их отдавать, сможешь решить проблему?");
-        AddDialogue("Зевс", "Да как нефиг");
+        AddDialogue("Зевс", "Да как нехуй");
     }
     
     private void AddDialogue(string speaker, string message)

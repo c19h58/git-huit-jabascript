@@ -53,12 +53,12 @@ public partial class Player : CharacterBody2D
             if (inputDirection > 0 && !_isFacingRight)
             {
                 _isFacingRight = true;
-                _sprite.Scale = new Vector2(1, 1);
+                _sprite.Scale = new Vector2(0.43f, 0.555f);
             }
             else if (inputDirection < 0 && _isFacingRight)
             {
                 _isFacingRight = false;
-                _sprite.Scale = new Vector2(-1, 1);
+                _sprite.Scale = new Vector2(-0.43f, 0.555f);
             }
         }
         
