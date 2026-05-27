@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://n6epqrhg8fbo"]
+
+[ext_resource type="Texture2D" uid="uid://drr51ppysy0h0" path="res://2D models/Back_Street.png" id="1_llwst"]
+[ext_resource type="Texture2D" uid="uid://cif2e5evccm88" path="res://2D models/Gemini_Generated_Image_93g8cz93g8cz93g8-Photoroom.png" id="2_0plju"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_llwst"]
+size = Vector2(2663, 49)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0plju"]
+size = Vector2(247, 49)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ms0wi"]
+size = Vector2(191, 29)
+
+[node name="Level2" type="Node2D" unique_id=306044500]
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1685202542]
+offset_right = 2663.0
+offset_bottom = 648.0
+texture = ExtResource("1_llwst")
+expand_mode = 1
+metadata/_edit_lock_ = true
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=153129637]
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1661630142]
+position = Vector2(1331.5, 623.5)
+shape = SubResource("RectangleShape2D_llwst")
+metadata/_edit_lock_ = true
+
+[node name="StaticBody2D2" type="StaticBody2D" parent="." unique_id=1889671745]
+position = Vector2(883, 309)
+metadata/_edit_lock_ = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2" unique_id=1205926080]
+position = Vector2(1480, 274)
+rotation = -0.31066862
+shape = SubResource("RectangleShape2D_0plju")
+
+[node name="TextureRect" type="TextureRect" parent="StaticBody2D2/CollisionShape2D" unique_id=1456472300]
+offset_left = 173.93997
+offset_top = -28.176182
+offset_right = 421.08057
+offset_bottom = 21.823818
+rotation = 0.13264503
+scale = Vector2(-1, 1)
+texture = ExtResource("2_0plju")
+expand_mode = 1
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D2" unique_id=697894360]
+position = Vector2(1685.5, 227.5)
+shape = SubResource("RectangleShape2D_ms0wi")
