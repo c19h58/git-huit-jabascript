@@ -29,3 +29,8 @@ shape = SubResource("CapsuleShape2D_uu6xs")
 [node name="Sprite2D" type="Sprite2D" parent="Player" unique_id=275021682]
 scale = Vector2(0.42968744, 0.5546877)
 texture = ExtResource("4_fos0i")
+
+[node name="LadderRayCast" type="RayCast2D" parent="Player" unique_id=335790710]
+target_position = Vector2(0, -10)
+collision_mask = 2
+hit_from_inside = true

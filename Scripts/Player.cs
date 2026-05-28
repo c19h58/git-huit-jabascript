@@ -1,4 +1,5 @@
 using Godot;
+using System;
 
 public partial class Player : CharacterBody2D
 {
@@ -12,21 +13,70 @@ public partial class Player : CharacterBody2D
     [Export] public float BulletLifeTime = 3.0f;
 
     private Vector2 _velocity;
-    private Sprite2D _sprite;
+    private AnimatedSprite2D _animatedSprite2D;
+    private RayCast2D _ladderRayCast;
     private bool _isFacingRight = true;
     private float _shootCooldownTimer = 0.0f;
-    
+
     public override void _Ready()
     {
-        _sprite = GetNodeOrNull<Sprite2D>("Sprite2D");
+        _animatedSprite2D = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        _ladderRayCast = GetNodeOrNull<RayCast2D>("LadderRayCast");
         GD.Print($"Player ready at position: {GlobalPosition}");
     }
-    
+
     public override void _PhysicsProcess(double delta)
     {
         float deltaF = (float)delta;
-        
-        // Гравитация
+
+        var ladderCollider = _ladderRayCast?.GetCollider();
+
+        if (ladderCollider != null)
+        {
+            LadderClimb(delta);
+        }
+        else
+        {
+            Movement(delta);
+        }
+
+        SetAnimation();
+        UpdateSpriteFacing();
+
+        Velocity = _velocity;
+        MoveAndSlide();
+    }
+
+    private void LadderClimb(double delta)
+    {
+        Vector2 direction = Vector2.Zero;
+
+        direction.X = Input.GetAxis("ui_left", "ui_right");
+        direction.Y = Input.GetAxis("ui_up", "ui_down");
+
+        if (direction != Vector2.Zero)
+        {
+            _velocity = direction * (Speed / 2.0f);
+        }
+        else
+        {
+            _velocity = Vector2.Zero;
+        }
+
+        if (_animatedSprite2D != null)
+        {
+            if (_velocity != Vector2.Zero)
+                _animatedSprite2D.Play("climb");
+            else
+                _animatedSprite2D.Stop();
+        }
+    }
+
+    private void Movement(double delta)
+    {
+        float deltaF = (float)delta;
+
+        // Gravity
         if (!IsOnFloor())
         {
             _velocity.Y += Gravity * deltaF;
@@ -35,24 +85,24 @@ public partial class Player : CharacterBody2D
         {
             _velocity.Y = 0;
         }
-        
-        // Горизонтальное движение
+
+        // Horizontal movement
         float inputDirection = 0;
         if (CanMove)
         {
             if (Input.IsActionPressed("move_left")) inputDirection = -1;
             if (Input.IsActionPressed("move_right")) inputDirection = 1;
         }
-        
+
         _velocity.X = inputDirection * Speed;
-        
-        // Прыжок
+
+        // Jump
         if (Input.IsActionJustPressed("jump") && IsOnFloor() && CanMove)
         {
             _velocity.Y = JumpVelocity;
         }
 
-        // Стрельба
+        // Shooting
         if (Input.IsActionJustPressed("shoot") && _shootCooldownTimer <= 0)
         {
             Shoot();
@@ -63,34 +113,51 @@ public partial class Player : CharacterBody2D
         {
             _shootCooldownTimer -= deltaF;
         }
-        
-        // Направление спрайта теперь зависит от положения МЫШИ, а не от движения
-        UpdateSpriteFacing();
-        
-        Velocity = _velocity;
-        MoveAndSlide();
+    }
+
+    private void SetAnimation()
+    {
+        if (_animatedSprite2D == null)
+            return;
+
+        // If on ladder, ladder code already handles climb animation/stop
+        if (_ladderRayCast?.GetCollider() != null)
+            return;
+
+        if (!IsOnFloor())
+        {
+            _animatedSprite2D.Play("jump");
+        }
+        else if (Math.Abs(_velocity.X) > 0.01f)
+        {
+            _animatedSprite2D.Play("run");
+        }
+        else
+        {
+            _animatedSprite2D.Play("idle");
+        }
     }
 
     private void UpdateSpriteFacing()
     {
-        if (_sprite == null) return;
+        if (_animatedSprite2D == null) return;
 
-        // Получаем позицию мыши в мире
         Vector2 mousePosition = GetGlobalMousePosition();
 
-        // Если мышь правее игрока, смотрим вправо. Если левее — влево.
         if (mousePosition.X > GlobalPosition.X && !_isFacingRight)
         {
             _isFacingRight = true;
-            _sprite.Scale = new Vector2(0.43f, 0.555f);
         }
         else if (mousePosition.X < GlobalPosition.X && _isFacingRight)
         {
             _isFacingRight = false;
-            _sprite.Scale = new Vector2(-0.43f, 0.555f);
         }
+
+        // Keep a consistent scale and flip horizontally for facing
+        _animatedSprite2D.Scale = new Vector2(0.43f, 0.555f);
+        _animatedSprite2D.FlipH = !_isFacingRight;
     }
-    
+
     public void SetCanMove(bool canMove)
     {
         CanMove = canMove;
@@ -99,12 +166,12 @@ public partial class Player : CharacterBody2D
             _velocity.X = 0;
         }
     }
-    
+
     public Vector2 GetPlayerPosition()
     {
         return GlobalPosition;
     }
-    
+
     public void Teleport(Vector2 newPosition)
     {
         GlobalPosition = newPosition;
@@ -115,11 +182,9 @@ public partial class Player : CharacterBody2D
         if (!CanMove)
             return;
 
-        // 1. Считываем позицию мыши и находим вектор направления
         Vector2 mousePosition = GetGlobalMousePosition();
         Vector2 direction = (mousePosition - GlobalPosition).Normalized();
 
-        // 2. Смещение точки спавна пули (чтобы она вылетала чуть впереди игрока в сторону мыши)
         Vector2 spawnOffset = direction * 16f;
         Vector2 spawnPosition = GlobalPosition + spawnOffset;
 
@@ -139,11 +204,8 @@ public partial class Player : CharacterBody2D
             bullet = new Bullet();
         }
 
-        // Передаем точное направление к мыши
         bullet.Initialize(direction, BulletSpeed, BulletLifeTime);
         bullet.GlobalPosition = spawnPosition;
-
-        // Поворачиваем саму пулю (визуально), если у неё будет вытянутый спрайт
         bullet.GlobalRotation = direction.Angle();
 
         var parent = GetParent();
@@ -208,7 +270,6 @@ public partial class Bullet : Area2D
 
     public override void _Draw()
     {
-        // Рисуем круг. Так как пуля летит во всех направлениях, круг выглядит отлично.
         DrawCircle(Vector2.Zero, 4, Colors.Yellow);
     }
 }
