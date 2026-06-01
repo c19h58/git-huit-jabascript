@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://uiju0leey1ni"
-path="res://.godot/imported/Gemini_Generated_Image_kjgqeykjgqeykjgq-Photoroom.png-2b24d9d752cdc3fb563c473b83362ed8.ctex"
+uid="uid://c02kjsmv45vvx"
+path="res://.godot/imported/Лестница.png-493a9461c3b6b628ba65b33f4dd7bdfb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://2D models/Gemini_Generated_Image_kjgqeykjgqeykjgq-Photoroom.png"
-dest_files=["res://.godot/imported/Gemini_Generated_Image_kjgqeykjgqeykjgq-Photoroom.png-2b24d9d752cdc3fb563c473b83362ed8.ctex"]
+source_file="res://2D models/Лестница.png"
+dest_files=["res://.godot/imported/Лестница.png-493a9461c3b6b628ba65b33f4dd7bdfb.ctex"]
 
 [params]
 
