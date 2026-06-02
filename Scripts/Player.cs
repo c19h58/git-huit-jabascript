@@ -63,13 +63,13 @@ public partial class Player : CharacterBody2D
             _velocity = Vector2.Zero;
         }
 
-        if (_animatedSprite2D != null)
-        {
-            if (_velocity != Vector2.Zero)
-                _animatedSprite2D.Play("climb");
-            else
-                _animatedSprite2D.Stop();
-        }
+        // if (_animatedSprite2D != null)
+        // {
+        //     if (_velocity != Vector2.Zero)
+        //         _animatedSprite2D.Play("climb");
+        //     else
+        //         _animatedSprite2D.Stop();
+        // }
     }
 
     private void Movement(double delta)

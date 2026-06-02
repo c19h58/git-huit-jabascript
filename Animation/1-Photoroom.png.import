@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c6wndx8x4nnsp"
-path="res://.godot/imported/ходьба-Photoroom.png-38e09092854f07f769a6e14d31694689.ctex"
+uid="uid://bapg3smfnbcb5"
+path="res://.godot/imported/1-Photoroom.png-290535c3f8092c0bd37f4eba3388ca68.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://2D models/ходьба-Photoroom.png"
-dest_files=["res://.godot/imported/ходьба-Photoroom.png-38e09092854f07f769a6e14d31694689.ctex"]
+source_file="res://Animation/1-Photoroom.png"
+dest_files=["res://.godot/imported/1-Photoroom.png-290535c3f8092c0bd37f4eba3388ca68.ctex"]
 
 [params]
 
