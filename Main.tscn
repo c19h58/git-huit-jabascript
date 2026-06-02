@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dss6seorn0xcb" path="res://Scripts/Player.cs" id="1_cm0pq"]
 [ext_resource type="PackedScene" uid="uid://btue6xhnnuhca" path="res://Scenes/Level1.tscn" id="1_glv2v"]
 [ext_resource type="PackedScene" uid="uid://n6epqrhg8fbo" path="res://Scenes/Level2.tscn" id="2_uu6xs"]
+[ext_resource type="PackedScene" uid="uid://cq7jfdoit443" path="res://Scenes/Enemy.tscn" id="4_cm0pq"]
 [ext_resource type="Texture2D" uid="uid://cab0x6i4n87cl" path="res://icon.svg" id="4_fos0i"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_uu6xs"]
@@ -34,3 +35,6 @@ texture = ExtResource("4_fos0i")
 target_position = Vector2(0, -10)
 collision_mask = 2
 hit_from_inside = true
+
+[node name="Enemy" parent="." unique_id=2096288167 instance=ExtResource("4_cm0pq")]
+position = Vector2(1800, 559)
