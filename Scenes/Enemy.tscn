@@ -13,20 +13,16 @@ height = 46.0
 script = ExtResource("1_m1htj")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1229254777]
-position = Vector2(0.51, -0.22)
 scale = Vector2(0.09333334, 0.13747227)
 texture = ExtResource("2_wovta")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=65558545]
-position = Vector2(0.55, 0)
 shape = SubResource("CapsuleShape2D_wovta")
 
 [node name="RayCast2D" type="RayCast2D" parent="." unique_id=304812182]
-position = Vector2(0.55, 0)
 target_position = Vector2(0, 53)
 
 [node name="DetectionArea" type="Area2D" parent="." unique_id=653444708]
-position = Vector2(0.55, -1)
 collision_layer = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=428962212]
