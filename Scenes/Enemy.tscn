@@ -1,22 +1,84 @@
 [gd_scene format=3 uid="uid://cq7jfdoit443"]
 
 [ext_resource type="Script" uid="uid://cryix2thq5cma" path="res://Scripts/Enemy.cs" id="1_m1htj"]
-[ext_resource type="Texture2D" uid="uid://cf2j4rnhcgeu3" path="res://Interface/1670861870_grizly-club-p-kvadrat-krasnii-png-39.jpg" id="2_wovta"]
+[ext_resource type="Texture2D" uid="uid://d0evuovgeytcy" path="res://Animation/image-Photoroom_2.png" id="2_mo1ky"]
+[ext_resource type="Texture2D" uid="uid://cwg3mdg01wb2h" path="res://Animation/1.1-Photoroom.png" id="3_6bs3c"]
+[ext_resource type="Texture2D" uid="uid://bhfo6v3xpt3lr" path="res://Animation/1.2-Photoroom.png" id="4_uoxpr"]
+[ext_resource type="Texture2D" uid="uid://dgk7hanmtpb6o" path="res://Animation/fire1.1-Photoroom.png" id="5_idouy"]
+[ext_resource type="Texture2D" uid="uid://d4kjf4itpl05i" path="res://Animation/fire1.2-Photoroom.png" id="6_0o0ue"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6s1gy"]
+atlas = ExtResource("2_mo1ky")
+region = Rect2(0, 0, 622, 1024)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uihya"]
+atlas = ExtResource("3_6bs3c")
+region = Rect2(0, 0, 750, 750)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_27ry8"]
+atlas = ExtResource("4_uoxpr")
+region = Rect2(0, 0, 750, 750)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_esfq3"]
+atlas = ExtResource("5_idouy")
+region = Rect2(0, 0, 750, 750)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qlal6"]
+atlas = ExtResource("6_0o0ue")
+region = Rect2(0, 0, 750, 750)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dascy"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6s1gy")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uihya")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_27ry8")
+}],
+"loop": true,
+"name": &"run",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_esfq3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qlal6")
+}],
+"loop": true,
+"name": &"shootenemy",
+"speed": 5.0
+}]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_wovta"]
-radius = 15.0
-height = 46.0
+radius = 39.0
+height = 102.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_xeo28"]
 
 [node name="Enemy" type="CharacterBody2D" unique_id=2096288167]
 script = ExtResource("1_m1htj")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1229254777]
-scale = Vector2(0.09333334, 0.13747227)
-texture = ExtResource("2_wovta")
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1289345612]
+position = Vector2(19.425, -14.422)
+scale = Vector2(0.28022668, 0.31250134)
+sprite_frames = SubResource("SpriteFrames_dascy")
+animation = &"shootenemy"
+frame_progress = 0.75834155
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=65558545]
+position = Vector2(0, -17.25)
+scale = Vector2(1.98, 1.98)
 shape = SubResource("CapsuleShape2D_wovta")
 
 [node name="RayCast2D" type="RayCast2D" parent="." unique_id=304812182]

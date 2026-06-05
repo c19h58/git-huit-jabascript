@@ -11,6 +11,7 @@ public partial class Player : CharacterBody2D
     [Export] public float BulletSpeed = 900.0f;
     [Export] public float ShootCooldown = 0.3f;
     [Export] public float BulletLifeTime = 3.0f;
+    [Export] public float BulletDamage = 10.0f;
 
     private Vector2 _velocity;
     private AnimatedSprite2D _animatedSprite2D;
@@ -204,7 +205,7 @@ public partial class Player : CharacterBody2D
             bullet = new Bullet();
         }
 
-        bullet.Initialize(direction, BulletSpeed, BulletLifeTime);
+        bullet.Initialize(direction, BulletSpeed, BulletLifeTime, BulletDamage);
         bullet.GlobalPosition = spawnPosition;
         bullet.GlobalRotation = direction.Angle();
 
@@ -226,19 +227,29 @@ public partial class Bullet : Area2D
     private float _lifeTime = 3.0f;
     private float _timeAlive = 0.0f;
     private bool _initialized = false;
+    private float _damage = 10.0f;
+    private bool _hasHit = false;
+    private float _safeTime = 0.05f; // seconds during which bullet won't damage overlapping bodies
 
-    public void Initialize(Vector2 direction, float speed, float lifeTime)
+    public void Initialize(Vector2 direction, float speed, float lifeTime, float damage = 10.0f)
     {
         _velocity = direction.Normalized() * speed;
         _lifeTime = lifeTime;
         _timeAlive = 0.0f;
+        _damage = damage;
         _initialized = true;
     }
 
     public override void _Ready()
     {
         SetupCollisionShape();
+        BodyEntered += OnBodyEntered;
         QueueRedraw();
+    }
+
+    public override void _ExitTree()
+    {
+        BodyEntered -= OnBodyEntered;
     }
 
     public override void _PhysicsProcess(double delta)
@@ -266,6 +277,40 @@ public partial class Bullet : Area2D
         var collisionShape = new CollisionShape2D();
         collisionShape.Shape = shape;
         AddChild(collisionShape);
+    }
+
+    private void OnBodyEntered(Node body)
+    {
+        if (_hasHit)
+            return;
+
+        if (!_initialized)
+            return;
+
+        // Не наносим урон в первые _safeTime секунд после инициализации (чтобы избежать мгновенных пересечений при спавне)
+        if (_timeAlive < _safeTime)
+            return;
+
+        if (body == null)
+            return;
+
+        // Если это непосредственно Enemy или другой объект с методом TakeDamage
+        if (body.HasMethod("TakeDamage"))
+        {
+            body.Call("TakeDamage", _damage);
+            _hasHit = true;
+            QueueFree();
+            return;
+        }
+
+        // Иногда коллайдером может быть дочерний узел (CollisionShape или Area) — пробуем родителя
+        var parent = body.GetParent();
+        if (parent != null && parent.HasMethod("TakeDamage"))
+        {
+            parent.Call("TakeDamage", _damage);
+            _hasHit = true;
+            QueueFree();
+        }
     }
 
     public override void _Draw()

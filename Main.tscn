@@ -151,7 +151,7 @@ shape = SubResource("CapsuleShape2D_uu6xs")
 scale = Vector2(0.61, 0.61)
 sprite_frames = SubResource("SpriteFrames_c2ibq")
 animation = &"cumshoot"
-frame_progress = 0.6520009
+frame_progress = 0.07558326
 
 [node name="LadderRayCast" type="RayCast2D" parent="Player" unique_id=335790710]
 target_position = Vector2(0, -10)
@@ -159,4 +159,4 @@ collision_mask = 2
 hit_from_inside = true
 
 [node name="Enemy" parent="." unique_id=2096288167 instance=ExtResource("4_cm0pq")]
-position = Vector2(1800, 559)
+position = Vector2(1800, 506.43)

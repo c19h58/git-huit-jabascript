@@ -7,14 +7,31 @@ public partial class Enemy : CharacterBody2D
     [Export] public float ChaseSpeed = 140.0f; // Скорость при погоне выше
     [Export] public float Gravity = 980.0f;
     [Export] public float MaxChaseDistance = 400.0f; // Максимальное расстояние для преследования
+    [Export] public float AttackRange = 220.0f; // Дистанция, на которой враг может стрелять
+    [Export] public float ShootInterval = 1.5f; // Интервал между выстрелами
+    [Export] public float ShootAnimationDuration = 0.35f;
+    [Export] public float MaxHealth = 30.0f; // Максимальное здоровье врага
+    [Export] public string IdleAnimation = "idle";
+    [Export] public string WalkAnimation = "run";
+    [Export] public string ShootAnimation = "shootenemy";
+    [Export] public PackedScene BulletScene;
+    [Export] public float BulletSpeed = 650.0f;
+    [Export] public float BulletLifeTime = 2.0f;
 
     private RayCast2D _floorDetector;
     private Sprite2D _sprite;
+    private AnimatedSprite2D _animatedSprite;
     private Area2D _detectionArea;
 
     private int _direction = 1;
     private Vector2 _startPosition; // Исходная позиция патруля
     private bool _isReturningToStart = false; // Возвращается ли враг в исходную точку
+    private float _shootCooldown = 0.0f;
+    private float _shootAnimationTimer = 0.0f;
+    private bool _isShooting = false;
+    private string _currentAnimation = string.Empty;
+    private float _health;
+    private ulong _lastPlayerDetectedMs = 0;
     
     // Ссылка на игрока, когда он в зоне видимости
     private Player _targetPlayer = null; 
@@ -22,7 +39,11 @@ public partial class Enemy : CharacterBody2D
     public override void _Ready()
     {
         _floorDetector = GetNode<RayCast2D>("RayCast2D");
-        _sprite = GetNode<Sprite2D>("Sprite2D");
+        _sprite = GetNodeOrNull<Sprite2D>("Sprite2D");
+        _animatedSprite = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        
+        // Инициализируем здоровье
+        _health = MaxHealth;
         
         // Сохраняем исходную позицию для возврата
         _startPosition = GlobalPosition;
@@ -112,12 +133,28 @@ public partial class Enemy : CharacterBody2D
 
     public override void _PhysicsProcess(double delta)
     {
+        float deltaF = (float)delta;
         Vector2 velocity = Velocity;
 
         // Гравитация
         if (!IsOnFloor())
         {
-            velocity.Y += Gravity * (float)delta;
+            velocity.Y += Gravity * deltaF;
+        }
+
+        // Таймеры для стрельбы и анимации
+        if (_shootCooldown > 0)
+        {
+            _shootCooldown -= deltaF;
+        }
+
+        if (_shootAnimationTimer > 0)
+        {
+            _shootAnimationTimer -= deltaF;
+            if (_shootAnimationTimer <= 0)
+            {
+                _isShooting = false;
+            }
         }
 
         // Проверяем валидность ссылки на игрока
@@ -132,6 +169,8 @@ public partial class Enemy : CharacterBody2D
             TryFindPlayer();
         }
 
+        bool isChasing = false;
+
         // Логика движения
         if (_targetPlayer != null && IsInstanceValid(_targetPlayer))
         {
@@ -142,6 +181,7 @@ public partial class Enemy : CharacterBody2D
             {
                 // --- РЕЖИМ ПРЕСЛЕДОВАНИЯ ---
                 _isReturningToStart = false;
+                isChasing = true;
                 
                 // Вычисляем направление к игроку по горизонтали (X)
                 float directionToPlayer = Mathf.Sign(_targetPlayer.GlobalPosition.X - GlobalPosition.X);
@@ -149,7 +189,16 @@ public partial class Enemy : CharacterBody2D
                 velocity.X = directionToPlayer * ChaseSpeed;
 
                 // Разворачиваем спрайт в сторону игрока
-                _sprite.FlipH = directionToPlayer == -1;
+                FlipSprite(directionToPlayer == -1);
+
+                // Стрельба, когда игрок достаточно близко
+                if (distanceToPlayer <= AttackRange && _shootCooldown <= 0)
+                {
+                    _isShooting = true;
+                    _shootAnimationTimer = ShootAnimationDuration;
+                    _shootCooldown = ShootInterval;
+                    TryShootAtPlayer();
+                }
             }
             else
             {
@@ -168,7 +217,7 @@ public partial class Enemy : CharacterBody2D
             {
                 float directionToStart = Mathf.Sign(_startPosition.X - GlobalPosition.X);
                 velocity.X = directionToStart * PatrolSpeed;
-                _sprite.FlipH = directionToStart == -1;
+                FlipSprite(directionToStart == -1);
             }
             else
             {
@@ -190,16 +239,107 @@ public partial class Enemy : CharacterBody2D
 
         Velocity = velocity;
         MoveAndSlide();
+
+        UpdateAnimation(velocity, isChasing);
     }
 
     private void DirectionFlip()
     {
         _direction *= -1;
-        _sprite.FlipH = _direction == -1;
+        FlipSprite(_direction == -1);
 
         Vector2 rayPosition = _floorDetector.Position;
         rayPosition.X = Mathf.Abs(rayPosition.X) * _direction;
         _floorDetector.Position = rayPosition;
+    }
+
+    private void FlipSprite(bool flipH)
+    {
+        if (_sprite != null)
+            _sprite.FlipH = flipH;
+        if (_animatedSprite != null)
+            _animatedSprite.FlipH = flipH;
+    }
+
+    private void UpdateAnimation(Vector2 velocity, bool isChasing)
+    {
+        if (_animatedSprite == null)
+            return;
+
+        if (_isShooting)
+        {
+            PlayAnimation(ShootAnimation);
+            return;
+        }
+
+        if (!IsOnFloor())
+        {
+            PlayAnimation(IdleAnimation);
+            return;
+        }
+
+        if (Mathf.Abs(velocity.X) > 0.01f)
+        {
+            PlayAnimation(WalkAnimation);
+            return;
+        }
+
+        PlayAnimation(IdleAnimation);
+    }
+
+    private void PlayAnimation(string animationName)
+    {
+        if (_animatedSprite == null || string.IsNullOrEmpty(animationName))
+            return;
+
+        if (_currentAnimation == animationName)
+            return;
+
+        if (_animatedSprite.SpriteFrames != null && _animatedSprite.SpriteFrames.HasAnimation(animationName))
+        {
+            _animatedSprite.Play(animationName);
+            _currentAnimation = animationName;
+        }
+    }
+
+    private void TryShootAtPlayer()
+    {
+        if (_targetPlayer == null)
+            return;
+
+        var direction = (_targetPlayer.GlobalPosition - GlobalPosition).Normalized();
+        var spawnOffset = direction * 16.0f;
+        var spawnPosition = GlobalPosition + spawnOffset;
+
+        Bullet bullet = null;
+        if (BulletScene != null)
+        {
+            var instance = BulletScene.Instantiate();
+            bullet = instance as Bullet;
+            if (bullet == null)
+            {
+                GD.PrintErr("BulletScene must be a Bullet node with the Bullet script attached.");
+                return;
+            }
+        }
+        else
+        {
+            bullet = new Bullet();
+        }
+
+        bullet.Initialize(direction, BulletSpeed, BulletLifeTime);
+        bullet.GlobalPosition = spawnPosition;
+        bullet.GlobalRotation = direction.Angle();
+
+        var parent = GetParent();
+        if (parent != null)
+        {
+            parent.AddChild(bullet);
+        }
+        else
+        {
+            GetTree().Root.AddChild(bullet);
+        }
     }
 
     // Триггер: КТО-ТО зашел в зону видимости (благодаря маске — это только игрок)
@@ -211,7 +351,13 @@ public partial class Enemy : CharacterBody2D
             if (_targetPlayer != player)
             {
                 _targetPlayer = player;
-                GD.Print("Игрок замечен! Начинаю погоню.");
+                // Логируем обнаружение не чаще, чем раз в 20 секунд
+                ulong now = (ulong)(DateTime.UtcNow.Ticks / TimeSpan.TicksPerMillisecond);
+                if (now - _lastPlayerDetectedMs >= 20000ul)
+                {
+                    GD.Print("Игрок замечен! Начинаю погоню.");
+                    _lastPlayerDetectedMs = now;
+                }
             }
         }
     }
@@ -225,7 +371,35 @@ public partial class Enemy : CharacterBody2D
             GD.Print("Игрок скрылся. Возвращаюсь к патрулированию.");
             
             // Сбрасываем направление патруля в зависимости от текущего поворота спрайта
-            _direction = _sprite.FlipH ? -1 : 1;
+            bool currentFlip = _animatedSprite != null ? _animatedSprite.FlipH : (_sprite != null ? _sprite.FlipH : false);
+            _direction = currentFlip ? -1 : 1;
         }
+    }
+
+    public void TakeDamage(float damage)
+    {
+        _health -= damage;
+        GD.Print($"Враг получил урон: {damage}. Здоровье: {_health}/{MaxHealth}");
+        
+        if (_health <= 0)
+        {
+            Die();
+        }
+    }
+
+    public float GetHealth()
+    {
+        return _health;
+    }
+
+    public float GetMaxHealth()
+    {
+        return MaxHealth;
+    }
+
+    private void Die()
+    {
+        GD.Print("Враг повержен!");
+        QueueFree();
     }
 }
