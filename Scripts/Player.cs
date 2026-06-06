@@ -5,107 +5,206 @@ public partial class Player : CharacterBody2D
 {
     [Export] public float Speed = 300.0f;
     [Export] public float Gravity = 980.0f;
-    [Export] public float JumpVelocity = -400.0f;
+    [Export] public float JumpVelocity = -500.0f;
+    [Export] public float ClimbSpeed = 150.0f;
+    [Export] public float LadderHorizontalSpeed = 50.0f;
     [Export] public bool CanMove = true;
     [Export] public PackedScene BulletScene;
     [Export] public float BulletSpeed = 900.0f;
     [Export] public float ShootCooldown = 0.3f;
     [Export] public float BulletLifeTime = 3.0f;
+    
+    // ============================================
+    // ЗДОРОВЬЕ
+    // ============================================
+    [Export] public int MaxHealth = 100;
+    private int _currentHealth;
+    
+    // Ссылка на интерфейс
+    private PlayerUI _playerUI;
 
     private Vector2 _velocity;
-    private AnimatedSprite2D _animatedSprite2D;
-    private RayCast2D _ladderRayCast;
     private bool _isFacingRight = true;
     private float _shootCooldownTimer = 0.0f;
+    
+    // Переменные для лестницы
+    private bool _isOnLadder = false;
+    private bool _isClimbing = false;
 
     public override void _Ready()
     {
-        _animatedSprite2D = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
-        _ladderRayCast = GetNodeOrNull<RayCast2D>("LadderRayCast");
+        // Добавляем игрока в группу
+        AddToGroup("player");
+        
         GD.Print($"Player ready at position: {GlobalPosition}");
+        
+        // Инициализация здоровья
+        _currentHealth = MaxHealth;
+        
+        // Поиск интерфейса в сцене
+        _playerUI = GetNodeOrNull<PlayerUI>("/root/Main/PlayerUI");
+        if (_playerUI == null)
+        {
+            _playerUI = GetNodeOrNull<PlayerUI>("../PlayerUI");
+        }
+        
+        if (_playerUI != null)
+        {
+            _playerUI.UpdateHealth(_currentHealth, MaxHealth);
+            GD.Print("PlayerUI found and connected!");
+        }
+        else
+        {
+            GD.PrintErr("PlayerUI not found!");
+        }
+    }
+    
+    // ============================================
+    // ОБНОВЛЕНИЕ ИНТЕРФЕЙСА
+    // ============================================
+    
+    private void UpdateHealthUI()
+    {
+        if (_playerUI != null)
+        {
+            _playerUI.UpdateHealth(_currentHealth, MaxHealth);
+        }
+    }
+    
+    // ============================================
+    // ПОЛУЧЕНИЕ УРОНА
+    // ============================================
+    
+    public void TakeDamage(int amount)
+    {
+        if (_currentHealth <= 0)
+            return;
+        
+        _currentHealth = Math.Max(0, _currentHealth - amount);
+        GD.Print($"Player took {amount} damage! Health: {_currentHealth}/{MaxHealth}");
+        
+        UpdateHealthUI();
+        
+        // Эффект получения урона (мигание)
+        Modulate = Colors.Red;
+        GetTree().CreateTimer(0.1).Timeout += () => Modulate = Colors.White;
+        
+        if (_currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+    
+    // ============================================
+    // ЛЕЧЕНИЕ
+    // ============================================
+    
+    public bool Heal(int amount)
+    {
+        if (_currentHealth >= MaxHealth)
+            return false;
+        
+        _currentHealth = Math.Min(MaxHealth, _currentHealth + amount);
+        UpdateHealthUI();
+        
+        GD.Print($"Player healed! Health: {_currentHealth}/{MaxHealth}");
+        
+        return true;
     }
 
+    private void Die()
+    {
+        GD.Print("Player died!");
+        SetCanMove(false);
+    }
+
+    // ============================================
+    // ФИЗИКА И ДВИЖЕНИЕ
+    // ============================================
+    
     public override void _PhysicsProcess(double delta)
     {
         float deltaF = (float)delta;
-
-        var ladderCollider = _ladderRayCast?.GetCollider();
-
-        if (ladderCollider != null)
-        {
-            LadderClimb(delta);
-        }
-        else
-        {
-            Movement(delta);
-        }
-
-        SetAnimation();
-        UpdateSpriteFacing();
-
-        Velocity = _velocity;
-        MoveAndSlide();
-    }
-
-    private void LadderClimb(double delta)
-    {
-        Vector2 direction = Vector2.Zero;
-
-        direction.X = Input.GetAxis("ui_left", "ui_right");
-        direction.Y = Input.GetAxis("ui_up", "ui_down");
-
-        if (direction != Vector2.Zero)
-        {
-            _velocity = direction * (Speed / 2.0f);
-        }
-        else
-        {
-            _velocity = Vector2.Zero;
-        }
-
-        if (_animatedSprite2D != null)
-        {
-            if (_velocity != Vector2.Zero)
-                _animatedSprite2D.Play("climb");
-            else
-                _animatedSprite2D.Stop();
-        }
-    }
-
-    private void Movement(double delta)
-    {
-        float deltaF = (float)delta;
-
-        // Gravity
-        if (!IsOnFloor())
-        {
-            _velocity.Y += Gravity * deltaF;
-        }
-        else if (_velocity.Y > 0)
-        {
-            _velocity.Y = 0;
-        }
-
-        // Horizontal movement
-        float inputDirection = 0;
+        
+        CheckForLadder();
+        
+        Vector2 inputDirection = Vector2.Zero;
         if (CanMove)
         {
-            if (Input.IsActionPressed("move_left")) inputDirection = -1;
-            if (Input.IsActionPressed("move_right")) inputDirection = 1;
+            inputDirection.X = Input.GetAxis("move_left", "move_right");
+            inputDirection.Y = Input.GetAxis("ui_up", "ui_down");
         }
 
-        _velocity.X = inputDirection * Speed;
-
-        // Jump
-        if (Input.IsActionJustPressed("jump") && IsOnFloor() && CanMove)
+        // ============================================
+        // ЛОГИКА ЛЕСТНИЦЫ
+        // ============================================
+        
+        if (_isOnLadder && !_isClimbing)
         {
-            _velocity.Y = JumpVelocity;
+            if (Input.IsActionPressed("ui_up") || Input.IsActionPressed("jump"))
+            {
+                _isClimbing = true;
+            }
+            else if (Input.IsActionPressed("ui_down"))
+            {
+                _isClimbing = true;
+            }
+        }
+        
+        if (_isClimbing)
+        {
+            float verticalInput = 0;
+            if (Input.IsActionPressed("ui_up"))
+                verticalInput = -1;
+            else if (Input.IsActionPressed("ui_down"))
+                verticalInput = 1;
+            
+            float horizontalInput = inputDirection.X;
+            
+            _velocity.Y = verticalInput * ClimbSpeed;
+            _velocity.X = horizontalInput * LadderHorizontalSpeed;
+            
+            if (Math.Abs(verticalInput) < 0.01f && Math.Abs(horizontalInput) < 0.01f)
+            {
+                _velocity.X = 0;
+                _velocity.Y = 0;
+            }
+        }
+        else
+        {
+            // ============================================
+            // ОБЫЧНОЕ ДВИЖЕНИЕ
+            // ============================================
+            
+            if (!IsOnFloor())
+            {
+                _velocity.Y += Gravity * deltaF;
+            }
+            else if (_velocity.Y > 0)
+            {
+                _velocity.Y = 0;
+            }
+
+            float inputDirectionX = 0;
+            if (CanMove)
+            {
+                inputDirectionX = Input.GetAxis("move_left", "move_right");
+            }
+
+            _velocity.X = inputDirectionX * Speed;
+
+            if (Input.IsActionJustPressed("jump") && IsOnFloor() && CanMove)
+            {
+                _velocity.Y = JumpVelocity;
+            }
         }
 
-        // Shooting
-        if (Input.IsActionJustPressed("shoot") && _shootCooldownTimer <= 0)
+        // ============================================
+        // СТРЕЛЬБА (в направлении движения)
+        // ============================================
+        if (Input.IsActionJustPressed("shoot") && _shootCooldownTimer <= 0 && CanMove)
         {
-            Shoot();
+            ShootInMovementDirection();
             _shootCooldownTimer = ShootCooldown;
         }
 
@@ -113,81 +212,24 @@ public partial class Player : CharacterBody2D
         {
             _shootCooldownTimer -= deltaF;
         }
+
+        Velocity = _velocity;
+        MoveAndSlide();
+        
+        UpdateFacingDirection();
     }
 
-    private void SetAnimation()
+    // ============================================
+    // АТАКА В НАПРАВЛЕНИИ ДВИЖЕНИЯ
+    // ============================================
+    
+    private void ShootInMovementDirection()
     {
-        if (_animatedSprite2D == null)
-            return;
-
-        // If on ladder, ladder code already handles climb animation/stop
-        if (_ladderRayCast?.GetCollider() != null)
-            return;
-
-        if (!IsOnFloor())
-        {
-            _animatedSprite2D.Play("jump");
-        }
-        else if (Math.Abs(_velocity.X) > 0.01f)
-        {
-            _animatedSprite2D.Play("run");
-        }
-        else
-        {
-            _animatedSprite2D.Play("idle");
-        }
-    }
-
-    private void UpdateSpriteFacing()
-    {
-        if (_animatedSprite2D == null) return;
-
-        Vector2 mousePosition = GetGlobalMousePosition();
-
-        if (mousePosition.X > GlobalPosition.X && !_isFacingRight)
-        {
-            _isFacingRight = true;
-        }
-        else if (mousePosition.X < GlobalPosition.X && _isFacingRight)
-        {
-            _isFacingRight = false;
-        }
-
-        // Keep a consistent scale and flip horizontally for facing
-        _animatedSprite2D.Scale = new Vector2(0.43f, 0.555f);
-        _animatedSprite2D.FlipH = !_isFacingRight;
-    }
-
-    public void SetCanMove(bool canMove)
-    {
-        CanMove = canMove;
-        if (!canMove)
-        {
-            _velocity.X = 0;
-        }
-    }
-
-    public Vector2 GetPlayerPosition()
-    {
-        return GlobalPosition;
-    }
-
-    public void Teleport(Vector2 newPosition)
-    {
-        GlobalPosition = newPosition;
-    }
-
-    private void Shoot()
-    {
-        if (!CanMove)
-            return;
-
-        Vector2 mousePosition = GetGlobalMousePosition();
-        Vector2 direction = (mousePosition - GlobalPosition).Normalized();
-
-        Vector2 spawnOffset = direction * 16f;
+        // Направление атаки: туда, куда смотрит персонаж
+        Vector2 direction = _isFacingRight ? Vector2.Right : Vector2.Left;
+        Vector2 spawnOffset = direction * 20f;
         Vector2 spawnPosition = GlobalPosition + spawnOffset;
-
+        
         Bullet bullet = null;
         if (BulletScene != null)
         {
@@ -203,20 +245,93 @@ public partial class Player : CharacterBody2D
         {
             bullet = new Bullet();
         }
-
+        
         bullet.Initialize(direction, BulletSpeed, BulletLifeTime);
         bullet.GlobalPosition = spawnPosition;
-        bullet.GlobalRotation = direction.Angle();
-
+        
+        // Поворот пули в направлении выстрела
+        bullet.GlobalRotation = direction.X > 0 ? 0 : Mathf.Pi;
+        
         var parent = GetParent();
         if (parent != null)
-        {
             parent.AddChild(bullet);
-        }
         else
-        {
             GetTree().Root.AddChild(bullet);
+    }
+
+    // ============================================
+    // ОБНОВЛЕНИЕ НАПРАВЛЕНИЯ ВЗГЛЯДА
+    // ============================================
+    
+    private void UpdateFacingDirection()
+    {
+        // Меняем направление в зависимости от горизонтального движения
+        if (Math.Abs(_velocity.X) > 10f)
+        {
+            _isFacingRight = _velocity.X > 0;
         }
+        
+        // Поворот спрайта (если есть AnimatedSprite2D)
+        // var sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+        // if (sprite != null)
+        //     sprite.FlipH = !_isFacingRight;
+    }
+
+    // ============================================
+    // ПОИСК ЛЕСТНИЦЫ
+    // ============================================
+    
+    private void CheckForLadder()
+    {
+        bool onLadder = false;
+        
+        var ladders = GetTree().GetNodesInGroup("ladder");
+        
+        foreach (Area2D ladder in ladders)
+        {
+            if (ladder == null) continue;
+            
+            var overlappingBodies = ladder.GetOverlappingBodies();
+            if (overlappingBodies.Contains(this))
+            {
+                onLadder = true;
+                break;
+            }
+        }
+        
+        if (onLadder && !_isOnLadder)
+        {
+            _isOnLadder = true;
+        }
+        else if (!onLadder && _isOnLadder)
+        {
+            _isOnLadder = false;
+            _isClimbing = false;
+        }
+    }
+
+    // ============================================
+    // ПУБЛИЧНЫЕ МЕТОДЫ
+    // ============================================
+    
+    public void SetCanMove(bool canMove)
+    {
+        CanMove = canMove;
+        if (!canMove)
+        {
+            _velocity.X = 0;
+            _isClimbing = false;
+        }
+    }
+
+    public Vector2 GetPlayerPosition()
+    {
+        return GlobalPosition;
+    }
+
+    public void Teleport(Vector2 newPosition)
+    {
+        GlobalPosition = newPosition;
     }
 }
 
@@ -233,12 +348,16 @@ public partial class Bullet : Area2D
         _lifeTime = lifeTime;
         _timeAlive = 0.0f;
         _initialized = true;
+        
+        AddToGroup("projectiles");
     }
 
     public override void _Ready()
     {
         SetupCollisionShape();
         QueueRedraw();
+        
+        BodyEntered += OnBodyEntered;
     }
 
     public override void _PhysicsProcess(double delta)
@@ -254,22 +373,34 @@ public partial class Bullet : Area2D
             QueueFree();
         }
     }
-
+    
     private void SetupCollisionShape()
     {
         if (GetNodeOrNull<CollisionShape2D>("CollisionShape2D") != null)
             return;
 
         var shape = new CircleShape2D();
-        shape.Radius = 4;
-
+        shape.Radius = 6;
+        
         var collisionShape = new CollisionShape2D();
         collisionShape.Shape = shape;
         AddChild(collisionShape);
     }
+    
+    private void OnBodyEntered(Node2D body)
+    {
+        if (body.IsInGroup("enemies"))
+        {
+            if (body.HasMethod("TakeDamage"))
+            {
+                body.Call("TakeDamage", 25);
+            }
+            QueueFree();
+        }
+    }
 
     public override void _Draw()
     {
-        DrawCircle(Vector2.Zero, 4, Colors.Yellow);
+        DrawCircle(Vector2.Zero, 6, Colors.Yellow);
     }
 }

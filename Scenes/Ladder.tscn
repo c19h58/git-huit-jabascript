@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://dgkwu3vu77i6e"]
+
+[ext_resource type="Texture2D" uid="uid://c02kjsmv45vvx" path="res://2D models/Лестница.png" id="1_10d6d"]
+[ext_resource type="Script" uid="uid://bghbsp5qvuwuv" path="res://Scripts/Ladder.cs" id="1_hojfu"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hojfu"]
+size = Vector2(1, 77.515)
+
+[node name="Ladder" type="Area2D" unique_id=1068320418]
+script = ExtResource("1_hojfu")
+metadata/_edit_horizontal_guides_ = [-28.0]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=976239990]
+position = Vector2(-0.485, 0)
+scale = Vector2(0.105, 0.08)
+texture = ExtResource("1_10d6d")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2060852132]
+position = Vector2(0, -9.536743e-07)
+shape = SubResource("RectangleShape2D_hojfu")

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://drr51ppysy0h0"
-path="res://.godot/imported/Back_Street.png-4e31a976825a9962bdb7030d0a9bb6f2.ctex"
+uid="uid://bw2ufakw4jdvj"
+path="res://.godot/imported/Bar.png-58537d25b9decbdf97d1be846f9bf67c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://2D models/Back_Street.png"
-dest_files=["res://.godot/imported/Back_Street.png-4e31a976825a9962bdb7030d0a9bb6f2.ctex"]
+source_file="res://2D models/Bar.png"
+dest_files=["res://.godot/imported/Bar.png-58537d25b9decbdf97d1be846f9bf67c.ctex"]
 
 [params]
 

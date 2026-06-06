@@ -1,9 +1,14 @@
 [gd_scene format=3 uid="uid://c6j5immwfbwee"]
 
+[ext_resource type="Script" uid="uid://b8ll1a8ershnd" path="res://Scripts/CameraManager.cs" id="1_3dxm6"]
 [ext_resource type="Script" uid="uid://dss6seorn0xcb" path="res://Scripts/Player.cs" id="1_cm0pq"]
 [ext_resource type="PackedScene" uid="uid://btue6xhnnuhca" path="res://Scenes/Level1.tscn" id="1_glv2v"]
 [ext_resource type="PackedScene" uid="uid://n6epqrhg8fbo" path="res://Scenes/Level2.tscn" id="2_uu6xs"]
+[ext_resource type="PackedScene" uid="uid://cv53lb5i0xba8" path="res://Scenes/Level3.tscn" id="3_fos0i"]
 [ext_resource type="Texture2D" uid="uid://cab0x6i4n87cl" path="res://icon.svg" id="4_fos0i"]
+[ext_resource type="PackedScene" uid="uid://cthlwsf3cggy8" path="res://Scenes/Level4.tscn" id="4_trn2v"]
+[ext_resource type="PackedScene" uid="uid://bs5lxf7qvdk57" path="res://Scenes/PlayerUI.tscn" id="7_03owx"]
+[ext_resource type="PackedScene" uid="uid://k3u47idkhw4s" path="res://Scenes/LevelTrigger.tscn" id="7_lgr22"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_uu6xs"]
 radius = 24.0
@@ -12,25 +17,53 @@ height = 70.0
 [node name="Main" type="Node2D" unique_id=1398188270]
 
 [node name="Level1" parent="." unique_id=1913138211 instance=ExtResource("1_glv2v")]
+metadata/_edit_lock_ = true
 
 [node name="Level2" parent="." unique_id=306044500 instance=ExtResource("2_uu6xs")]
 position = Vector2(1200, 0)
+metadata/_edit_lock_ = true
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1315278215]
-position = Vector2(575, 324)
+[node name="Level3" parent="." unique_id=294698406 instance=ExtResource("3_fos0i")]
+position = Vector2(4500, 0)
+metadata/_edit_lock_ = true
+
+[node name="Level4" parent="." unique_id=626739241 instance=ExtResource("4_trn2v")]
+position = Vector2(8200, 0)
 
 [node name="Player" type="CharacterBody2D" parent="." unique_id=587998505]
-position = Vector2(1350, 559)
+position = Vector2(1349, 548)
 script = ExtResource("1_cm0pq")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=457762163]
 shape = SubResource("CapsuleShape2D_uu6xs")
+metadata/_edit_lock_ = true
 
 [node name="Sprite2D" type="Sprite2D" parent="Player" unique_id=275021682]
 scale = Vector2(0.42968744, 0.5546877)
 texture = ExtResource("4_fos0i")
+metadata/_edit_lock_ = true
 
 [node name="LadderRayCast" type="RayCast2D" parent="Player" unique_id=335790710]
 target_position = Vector2(0, -10)
 collision_mask = 2
 hit_from_inside = true
+metadata/_edit_lock_ = true
+
+[node name="PlayerUI" parent="." unique_id=507709289 instance=ExtResource("7_03owx")]
+
+[node name="LevelTrigger" parent="." unique_id=1297614085 instance=ExtResource("7_lgr22")]
+position = Vector2(3823, -23)
+TargetPosition = Vector2(5365, 507)
+
+[node name="LevelTrigger2" parent="." unique_id=128385053 instance=ExtResource("7_lgr22")]
+position = Vector2(7573, -181)
+TargetLevel = 4
+TargetPosition = Vector2(8319, 0)
+
+[node name="CameraManager" type="Node2D" parent="." unique_id=576894703 node_paths=PackedStringArray("_gameCamera", "_player")]
+script = ExtResource("1_3dxm6")
+_gameCamera = NodePath("Camera2D")
+_player = NodePath("../Player")
+
+[node name="Camera2D" type="Camera2D" parent="CameraManager" unique_id=1315278215]
+position = Vector2(575, 324)
