@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://cq7jfdoit443"]
+
+[ext_resource type="Script" uid="uid://w2ctpv45jrh3" path="res://Scripts/Enemy.cs" id="1_mo1ky"]
+[ext_resource type="PackedScene" uid="uid://b4u1ls5lfd6dl" path="res://Scenes/Bullet.tscn" id="2_6bs3c"]
+[ext_resource type="Texture2D" uid="uid://culwc8t4r1nte" path="res://Animation/image-Photoroom_2.png" id="2_mo1ky"]
+[ext_resource type="Texture2D" uid="uid://cwg3mdg01wb2h" path="res://Animation/1.1-Photoroom.png" id="3_6bs3c"]
+[ext_resource type="Texture2D" uid="uid://bhfo6v3xpt3lr" path="res://Animation/1.2-Photoroom.png" id="4_uoxpr"]
+[ext_resource type="Texture2D" uid="uid://dgk7hanmtpb6o" path="res://Animation/fire1.1-Photoroom.png" id="5_idouy"]
+[ext_resource type="Texture2D" uid="uid://d4kjf4itpl05i" path="res://Animation/fire1.2-Photoroom.png" id="6_0o0ue"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1exfc"]
+radius = 61.0
+height = 284.0
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_mo1ky"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_mo1ky")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_6bs3c")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_uoxpr")
+}],
+"loop": true,
+"name": &"run",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_idouy")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_0o0ue")
+}],
+"loop": true,
+"name": &"shootenemy",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1exfc"]
+radius = 509.03595
+
+[node name="Enemy" type="CharacterBody2D" unique_id=179177843]
+scale = Vector2(0.34, 0.34)
+collision_layer = 6
+collision_mask = 6
+script = ExtResource("1_mo1ky")
+BulletScene = ExtResource("2_6bs3c")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=710232972]
+shape = SubResource("CapsuleShape2D_1exfc")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=337415315]
+scale = Vector2(0.5, 0.5)
+sprite_frames = SubResource("SpriteFrames_mo1ky")
+animation = &"run"
+
+[node name="RayCast2D" type="RayCast2D" parent="." unique_id=1670343653]
+target_position = Vector2(30, 60)
+
+[node name="DetectionArea" type="Area2D" parent="." unique_id=373509466]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=1195971646]
+shape = SubResource("CircleShape2D_1exfc")

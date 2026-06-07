@@ -5,14 +5,93 @@
 [ext_resource type="PackedScene" uid="uid://btue6xhnnuhca" path="res://Scenes/Level1.tscn" id="1_glv2v"]
 [ext_resource type="PackedScene" uid="uid://n6epqrhg8fbo" path="res://Scenes/Level2.tscn" id="2_uu6xs"]
 [ext_resource type="PackedScene" uid="uid://cv53lb5i0xba8" path="res://Scenes/Level3.tscn" id="3_fos0i"]
-[ext_resource type="Texture2D" uid="uid://cab0x6i4n87cl" path="res://icon.svg" id="4_fos0i"]
 [ext_resource type="PackedScene" uid="uid://cthlwsf3cggy8" path="res://Scenes/Level4.tscn" id="4_trn2v"]
+[ext_resource type="PackedScene" uid="uid://b4u1ls5lfd6dl" path="res://Scenes/Bullet.tscn" id="6_wkp8b"]
 [ext_resource type="PackedScene" uid="uid://bs5lxf7qvdk57" path="res://Scenes/PlayerUI.tscn" id="7_03owx"]
+[ext_resource type="Texture2D" path="res://2D models/GameOver.png" id="7_c6i3y"]
 [ext_resource type="PackedScene" uid="uid://k3u47idkhw4s" path="res://Scenes/LevelTrigger.tscn" id="7_lgr22"]
+[ext_resource type="Texture2D" uid="uid://bapg3smfnbcb5" path="res://Animation/1-Photoroom.png" id="8_xrxkg"]
+[ext_resource type="Texture2D" uid="uid://cdt2mwx2cxnt1" path="res://Animation/jump1-Photoroom.png" id="9_sqvbp"]
+[ext_resource type="Texture2D" uid="uid://b5lq3g4b67v6o" path="res://Animation/jump3-Photoroom.png" id="10_hri7i"]
+[ext_resource type="PackedScene" uid="uid://cq7jfdoit443" path="res://Scenes/Enemy.tscn" id="10_wkp8b"]
+[ext_resource type="Texture2D" uid="uid://dbnku32q5yjv3" path="res://Animation/jump2-Photoroom.png" id="11_w3rk5"]
+[ext_resource type="Texture2D" uid="uid://rthbir7tp357" path="res://Animation/jump4-Photoroom.png" id="12_5mvff"]
+[ext_resource type="PackedScene" uid="uid://cllssx8lmut2k" path="res://Scenes/HealthPickup.tscn" id="12_5vvyt"]
+[ext_resource type="Texture2D" uid="uid://b7t4aj33iu0tw" path="res://Animation/jump6-Photoroom.png" id="13_oye8v"]
+[ext_resource type="Texture2D" uid="uid://b118hgjo1qfbh" path="res://Animation/3-Photoroom.png" id="14_40n85"]
+[ext_resource type="PackedScene" uid="uid://v3mdpdflkwkc" path="res://Scenes/VictoryZone.tscn" id="14_c2ibq"]
+[ext_resource type="Texture2D" uid="uid://ddlg7xmcb7cn1" path="res://Animation/4-Photoroom.png" id="15_gb15f"]
+[ext_resource type="Texture2D" uid="uid://ckay3b08fwyrv" path="res://Animation/5-Photoroom.png" id="16_sph85"]
+[ext_resource type="Texture2D" uid="uid://cov6ysskruf8v" path="res://Animation/6-Photoroom.png" id="17_o7g6l"]
+[ext_resource type="Texture2D" uid="uid://clh60ed5cimav" path="res://Animation/climb1-Photoroom.png" id="18_vi5kq"]
+[ext_resource type="Texture2D" uid="uid://sdcimcav0n4n" path="res://Animation/climb2-Photoroom.png" id="19_5mkgo"]
+[ext_resource type="Texture2D" uid="uid://dq64ogbhdug5o" path="res://Animation/climb3-Photoroom.png" id="20_3ccbu"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_uu6xs"]
-radius = 24.0
-height = 70.0
+radius = 26.0
+height = 104.0
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_c6i3y"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("8_xrxkg")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_sqvbp")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_hri7i")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_w3rk5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_5mvff")
+}, {
+"duration": 1.0,
+"texture": ExtResource("13_oye8v")
+}],
+"loop": true,
+"name": &"jump",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("14_40n85")
+}, {
+"duration": 1.0,
+"texture": ExtResource("15_gb15f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("16_sph85")
+}, {
+"duration": 1.0,
+"texture": ExtResource("17_o7g6l")
+}],
+"loop": true,
+"name": &"run",
+"speed": 7.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("18_vi5kq")
+}, {
+"duration": 1.0,
+"texture": ExtResource("19_5mkgo")
+}, {
+"duration": 1.0,
+"texture": ExtResource("20_3ccbu")
+}],
+"loop": true,
+"name": &"shoot",
+"speed": 5.0
+}]
 
 [node name="Main" type="Node2D" unique_id=1398188270]
 
@@ -31,16 +110,15 @@ metadata/_edit_lock_ = true
 position = Vector2(8200, 0)
 
 [node name="Player" type="CharacterBody2D" parent="." unique_id=587998505]
-position = Vector2(1349, 548)
+position = Vector2(1350, 519)
 script = ExtResource("1_cm0pq")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=457762163]
-shape = SubResource("CapsuleShape2D_uu6xs")
+BulletScene = ExtResource("6_wkp8b")
+GameOverTexture = ExtResource("7_c6i3y")
 metadata/_edit_lock_ = true
 
-[node name="Sprite2D" type="Sprite2D" parent="Player" unique_id=275021682]
-scale = Vector2(0.42968744, 0.5546877)
-texture = ExtResource("4_fos0i")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player" unique_id=457762163]
+position = Vector2(-2, 12)
+shape = SubResource("CapsuleShape2D_uu6xs")
 metadata/_edit_lock_ = true
 
 [node name="LadderRayCast" type="RayCast2D" parent="Player" unique_id=335790710]
@@ -49,21 +127,113 @@ collision_mask = 2
 hit_from_inside = true
 metadata/_edit_lock_ = true
 
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Player" unique_id=285302214]
+position = Vector2(0, 4.95)
+scale = Vector2(0.555, 0.555)
+sprite_frames = SubResource("SpriteFrames_c6i3y")
+animation = &"run"
+metadata/_edit_lock_ = true
+
 [node name="PlayerUI" parent="." unique_id=507709289 instance=ExtResource("7_03owx")]
-
-[node name="LevelTrigger" parent="." unique_id=1297614085 instance=ExtResource("7_lgr22")]
-position = Vector2(3823, -23)
-TargetPosition = Vector2(5365, 507)
-
-[node name="LevelTrigger2" parent="." unique_id=128385053 instance=ExtResource("7_lgr22")]
-position = Vector2(7573, -181)
-TargetLevel = 4
-TargetPosition = Vector2(8319, 0)
 
 [node name="CameraManager" type="Node2D" parent="." unique_id=576894703 node_paths=PackedStringArray("_gameCamera", "_player")]
 script = ExtResource("1_3dxm6")
 _gameCamera = NodePath("Camera2D")
 _player = NodePath("../Player")
+metadata/_edit_lock_ = true
 
 [node name="Camera2D" type="Camera2D" parent="CameraManager" unique_id=1315278215]
 position = Vector2(575, 324)
+
+[node name="LevelTrigger" parent="." unique_id=1297614085 instance=ExtResource("7_lgr22")]
+position = Vector2(3823, -23)
+TargetPosition = Vector2(5365, 507)
+metadata/_edit_lock_ = true
+
+[node name="LevelTrigger2" parent="." unique_id=128385053 instance=ExtResource("7_lgr22")]
+position = Vector2(7573, -181)
+TargetLevel = 4
+TargetPosition = Vector2(8319, 0)
+metadata/_edit_lock_ = true
+
+[node name="VictoryZone" parent="." unique_id=786260118 instance=ExtResource("14_c2ibq")]
+position = Vector2(10247, 977)
+metadata/_edit_lock_ = true
+
+[node name="HealthPickup" parent="." unique_id=97459560 instance=ExtResource("12_5vvyt")]
+position = Vector2(3751, 546)
+
+[node name="Enemy" parent="." unique_id=179177843 instance=ExtResource("10_wkp8b")]
+position = Vector2(2145, 531)
+
+[node name="Enemy2" parent="." unique_id=1284558174 instance=ExtResource("10_wkp8b")]
+position = Vector2(2346, 531)
+
+[node name="Enemy3" parent="." unique_id=1451648934 instance=ExtResource("10_wkp8b")]
+position = Vector2(3528, 528)
+
+[node name="Enemy4" parent="." unique_id=1091208432 instance=ExtResource("10_wkp8b")]
+position = Vector2(9133, 741)
+
+[node name="Enemy5" parent="." unique_id=1249674324 instance=ExtResource("10_wkp8b")]
+position = Vector2(5661.9995, 90.99999)
+
+[node name="Enemy6" parent="." unique_id=1293968682 instance=ExtResource("10_wkp8b")]
+position = Vector2(6203, 1.0000001)
+
+[node name="Enemy8" parent="." unique_id=1598979056 instance=ExtResource("10_wkp8b")]
+position = Vector2(6502, -87)
+
+[node name="Enemy7" parent="." unique_id=84281618 instance=ExtResource("10_wkp8b")]
+position = Vector2(6596, 253)
+
+[node name="HealthPickup2" parent="." unique_id=1311834719 instance=ExtResource("12_5vvyt")]
+position = Vector2(5024, 105)
+
+[node name="HealthPickup3" parent="." unique_id=1937934777 instance=ExtResource("12_5vvyt")]
+position = Vector2(5366, 225)
+
+[node name="HealthPickup4" parent="." unique_id=404776190 instance=ExtResource("12_5vvyt")]
+position = Vector2(2715, 535)
+
+[node name="HealthPickup5" parent="." unique_id=1569342734 instance=ExtResource("12_5vvyt")]
+position = Vector2(2802, 535)
+
+[node name="HealthPickup6" parent="." unique_id=1606509040 instance=ExtResource("12_5vvyt")]
+position = Vector2(7302.0005, 264)
+
+[node name="HealthPickup7" parent="." unique_id=546940131 instance=ExtResource("12_5vvyt")]
+position = Vector2(9195, 347)
+
+[node name="HealthPickup8" parent="." unique_id=1328261841 instance=ExtResource("12_5vvyt")]
+position = Vector2(9660, 684)
+
+[node name="HealthPickup9" parent="." unique_id=886079677 instance=ExtResource("12_5vvyt")]
+position = Vector2(10438, 1170)
+
+[node name="Enemy9" parent="." unique_id=549545160 instance=ExtResource("10_wkp8b")]
+position = Vector2(9443, 330)
+
+[node name="Enemy10" parent="." unique_id=324083271 instance=ExtResource("10_wkp8b")]
+position = Vector2(8290, 969)
+
+[node name="Enemy11" parent="." unique_id=1675198963 instance=ExtResource("10_wkp8b")]
+position = Vector2(9070, 1158)
+
+[node name="Enemy12" parent="." unique_id=1162971038 instance=ExtResource("10_wkp8b")]
+position = Vector2(10098, 995)
+
+[node name="Enemy13" parent="." unique_id=804066037 instance=ExtResource("10_wkp8b")]
+position = Vector2(9420, 856.00006)
+
+[node name="HealthPickup10" parent="." unique_id=1005850420 instance=ExtResource("12_5vvyt")]
+position = Vector2(8254, 439)
+
+[node name="HealthPickup11" parent="." unique_id=644146813 instance=ExtResource("12_5vvyt")]
+position = Vector2(8610, 1123)
+
+[node name="HealthPickup12" parent="." unique_id=1867208195 instance=ExtResource("12_5vvyt")]
+position = Vector2(9403, 1026)
+
+[node name="HealthPickup13" parent="." unique_id=2047402737 instance=ExtResource("12_5vvyt")]
+position = Vector2(5894, 1)

@@ -70,8 +70,10 @@ scale = Vector2(0.9, 0.99722224)
 texture = ExtResource("1_kqyep")
 metadata/_edit_lock_ = true
 
-[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=424183835]
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=424183835 groups=["environment"]]
 position = Vector2(9, 240)
+collision_layer = 7
+collision_mask = 7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1272318125]
 position = Vector2(123.5, 70.5)
@@ -158,7 +160,7 @@ shape = SubResource("RectangleShape2D_uw8xp")
 one_way_collision = true
 
 [node name="CollisionShape2D18" type="CollisionShape2D" parent="StaticBody2D" unique_id=1858761815]
-position = Vector2(570, -44.75)
+position = Vector2(569.5, -41)
 shape = SubResource("RectangleShape2D_4upjg")
 one_way_collision = true
 

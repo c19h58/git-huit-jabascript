@@ -38,7 +38,6 @@ public partial class DialogSystem : CanvasLayer
         
         _viewportSize = GetViewport().GetVisibleRect().Size;
         
-        // Поиск Main через корень
         _mainNode = GetNodeOrNull<Node2D>("/root/Main");
         
         if (_mainNode != null)
@@ -46,9 +45,6 @@ public partial class DialogSystem : CanvasLayer
             _player = _mainNode.GetNodeOrNull<Player>("Player");
             _cameraManager = _mainNode.GetNodeOrNull<CameraManager>("CameraManager");
         }
-        
-        if (_player == null) GD.PrintErr("DialogSystem: Player not found in Main!");
-        if (_cameraManager == null) GD.PrintErr("DialogSystem: CameraManager not found in Main!");
         
         if (_player != null) _player.SetCanMove(false);
         
@@ -59,8 +55,6 @@ public partial class DialogSystem : CanvasLayer
         }
         
         if (_fadePanel != null) _fadePanel.Modulate = new Color(0, 0, 0, 0);
-        
-        GD.Print($"DialogSystem ready. Searching for CameraManager in Main...");
         
         LoadDialogues();
         StartDialog();
@@ -217,11 +211,6 @@ public partial class DialogSystem : CanvasLayer
         _isTransitioning = true;
         _canProceed = false;
         
-        GD.Print("========================================");
-        GD.Print("DialogSystem: All dialogues completed!");
-        GD.Print("Starting transition to Level 2...");
-        GD.Print("========================================");
-        
         if (_clickIndicator != null) _clickIndicator.Visible = false;
         
         if (_dialogContainer != null)
@@ -233,9 +222,6 @@ public partial class DialogSystem : CanvasLayer
             _dialogContainer.Visible = false;
         }
         
-        // НЕ затемняем здесь! Доверяем CameraManager'у
-        
-        // Поиск CameraManager в Main
         Node2D mainNode = GetNodeOrNull<Node2D>("/root/Main");
         if (mainNode != null)
         {
@@ -244,21 +230,14 @@ public partial class DialogSystem : CanvasLayer
         
         if (_cameraManager != null)
         {
-            // CameraManager сам сделает затемнение, телепортацию и снятие затемнения
             await _cameraManager.AttachToPlayerOnLevel2();
-            GD.Print("DialogSystem: CameraManager.AttachToPlayerOnLevel2() completed.");
         }
         else
         {
-            GD.PrintErr("DialogSystem: CameraManager not found in Main!");
             if (_player != null) _player.SetCanMove(true);
         }
         
         _isTransitioning = false;
-        
-        GD.Print("========================================");
-        GD.Print("DialogSystem: Transition completed!");
-        GD.Print("========================================");
     }
     
     public override void _ExitTree()

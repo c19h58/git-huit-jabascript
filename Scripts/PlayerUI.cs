@@ -25,8 +25,7 @@ public partial class PlayerUI : CanvasLayer
         _currentHealth = newHealth;
         _maxHealth = maxHealth;
         UpdateUI();
-        
-        // Эмитируем сигнал для других систем (если нужно)
+
         EmitSignal(SignalName.HealthChanged, _currentHealth, _maxHealth);
     }
     
@@ -41,7 +40,6 @@ public partial class PlayerUI : CanvasLayer
         if (_healthLabel != null)
         {
             _healthLabel.Text = $"{_currentHealth}/{_maxHealth}";
-            // Цвет текста не меняется в коде — настраивается в редакторе
         }
     }
 }

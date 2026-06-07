@@ -23,6 +23,10 @@ window/size/maximize_disabled=true
 
 project/assembly_name="2D-Game"
 
+[global_group]
+
+environment=""
+
 [input]
 
 ui_left={

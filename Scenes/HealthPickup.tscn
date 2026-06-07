@@ -7,6 +7,7 @@
 radius = 16.03122
 
 [node name="HealthPickup" type="Area2D" unique_id=97459560]
+scale = Vector2(1.5, 1.5)
 script = ExtResource("1_i2lef")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=205115397]

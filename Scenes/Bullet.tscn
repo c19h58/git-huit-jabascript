@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://b4u1ls5lfd6dl"]
+
+[ext_resource type="Script" uid="uid://cjmuo24aqg2yb" path="res://Scripts/Bullet.cs" id="1_vlxeq"]
+[ext_resource type="Texture2D" uid="uid://b5jd2pv8dka0b" path="res://Animation/Bullet_1.png" id="2_7k4wi"]
+[ext_resource type="Texture2D" uid="uid://bx643rmycre6p" path="res://Animation/Bullet_2.png" id="3_a2eq7"]
+[ext_resource type="Texture2D" uid="uid://dqiqq6e8m0cwu" path="res://Animation/Bullet_3.png" id="4_34s0o"]
+[ext_resource type="Texture2D" uid="uid://cehl5rtuv714y" path="res://Animation/Bullet_4.png" id="5_cgt83"]
+[ext_resource type="Texture2D" uid="uid://b7wombfmhq5tq" path="res://Animation/Bullet_5.png" id="6_8c870"]
+[ext_resource type="Texture2D" uid="uid://b10l0qx7qnl5n" path="res://Animation/Bullet_6.png" id="7_th1qm"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_14k46"]
+radius = 22.0
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_s8w76"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_7k4wi")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_a2eq7")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_34s0o")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_cgt83")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_8c870")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_th1qm")
+}],
+"loop": true,
+"name": &"default",
+"speed": 10.0
+}]
+
+[node name="Bullet" type="Area2D" unique_id=1441068736]
+collision_layer = 7
+collision_mask = 7
+script = ExtResource("1_vlxeq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=259874688]
+shape = SubResource("CircleShape2D_14k46")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=423240283]
+scale = Vector2(0.115, 0.115)
+sprite_frames = SubResource("SpriteFrames_s8w76")
+frame_progress = 0.3751872

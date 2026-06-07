@@ -10,38 +10,53 @@ public partial class Player : CharacterBody2D
     [Export] public float LadderHorizontalSpeed = 50.0f;
     [Export] public bool CanMove = true;
     [Export] public PackedScene BulletScene;
-    [Export] public float BulletSpeed = 900.0f;
+    [Export] public float BulletSpeed = 600.0f;
     [Export] public float ShootCooldown = 0.3f;
-    [Export] public float BulletLifeTime = 3.0f;
+    [Export] public float BulletLifeTime = 0.6f;
+    [Export] public int BulletDamage = 25;
     
-    // ============================================
-    // ЗДОРОВЬЕ
-    // ============================================
+
+    [Export] public string IdleAnimation = "idle";
+    [Export] public string WalkAnimation = "run";
+    [Export] public string JumpAnimation = "jump";
+    [Export] public string ShootAnimation = "shoot";
+    [Export] public float ShootAnimationDuration = 0.5f;
+    
+
+    [Export] public float AttackDelay = 0.4f;
+    
     [Export] public int MaxHealth = 100;
     private int _currentHealth;
-    
-    // Ссылка на интерфейс
+
     private PlayerUI _playerUI;
+    
+    [Export] public Texture2D GameOverTexture;
+    private TextureRect _gameOverScreen;
+    private bool _isDead = false;
 
     private Vector2 _velocity;
     private bool _isFacingRight = true;
     private float _shootCooldownTimer = 0.0f;
     
-    // Переменные для лестницы
     private bool _isOnLadder = false;
     private bool _isClimbing = false;
+    
+    private AnimatedSprite2D _animatedSprite;
+    private string _currentAnimation = string.Empty;
+    private bool _isShooting = false;
+    private float _shootAnimationTimer = 0.0f;
+
+    private float _attackDelayTimer = 0.0f;
+    private bool _isWaitingForAttack = false;
 
     public override void _Ready()
     {
-        // Добавляем игрока в группу
         AddToGroup("player");
         
-        GD.Print($"Player ready at position: {GlobalPosition}");
+        _animatedSprite = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
         
-        // Инициализация здоровья
         _currentHealth = MaxHealth;
         
-        // Поиск интерфейса в сцене
         _playerUI = GetNodeOrNull<PlayerUI>("/root/Main/PlayerUI");
         if (_playerUI == null)
         {
@@ -51,17 +66,90 @@ public partial class Player : CharacterBody2D
         if (_playerUI != null)
         {
             _playerUI.UpdateHealth(_currentHealth, MaxHealth);
-            GD.Print("PlayerUI found and connected!");
         }
-        else
+        
+        CreateGameOverScreen();
+        PlayAnimation(IdleAnimation);
+    }
+    
+    
+    private void PlayAnimation(string animationName)
+    {
+        if (_animatedSprite == null || string.IsNullOrEmpty(animationName)) return;
+        if (_currentAnimation == animationName) return;
+        
+        if (_animatedSprite.SpriteFrames != null && _animatedSprite.SpriteFrames.HasAnimation(animationName))
         {
-            GD.PrintErr("PlayerUI not found!");
+            _animatedSprite.Play(animationName);
+            _currentAnimation = animationName;
         }
     }
     
-    // ============================================
-    // ОБНОВЛЕНИЕ ИНТЕРФЕЙСА
-    // ============================================
+    private void UpdateAnimation()
+    {
+        if (_animatedSprite == null || _isDead) return;
+        
+        if (_isShooting)
+        {
+            PlayAnimation(ShootAnimation);
+            return;
+        }
+        
+        if (!IsOnFloor())
+        {
+            PlayAnimation(JumpAnimation);
+            return;
+        }
+        
+        if (Mathf.Abs(_velocity.X) > 10f)
+        {
+            PlayAnimation(WalkAnimation);
+            return;
+        }
+        
+        PlayAnimation(IdleAnimation);
+    }
+    
+    private void FlipSprite(bool flipH)
+    {
+        if (_animatedSprite != null)
+        {
+            _animatedSprite.FlipH = flipH;
+        }
+    }
+    
+    
+    private void CreateGameOverScreen()
+    {
+        _gameOverScreen = new TextureRect();
+        _gameOverScreen.Texture = GameOverTexture;
+        _gameOverScreen.Size = GetViewport().GetVisibleRect().Size;
+        _gameOverScreen.Modulate = new Color(1, 1, 1, 0);
+        _gameOverScreen.MouseFilter = Control.MouseFilterEnum.Ignore;
+        
+        var canvasLayer = new CanvasLayer();
+        canvasLayer.Layer = 100;
+        canvasLayer.AddChild(_gameOverScreen);
+        AddChild(canvasLayer);
+    }
+    
+    private void ShowGameOver()
+    {
+        if (_gameOverScreen == null) return;
+        
+        var tween = CreateTween();
+        tween.TweenProperty(_gameOverScreen, "modulate:a", 1.0f, 1.0f);
+        
+        GetTree().CreateTimer(4.0f).Timeout += () =>
+        {
+            ReloadGame();
+        };
+    }
+    
+    private void ReloadGame()
+    {
+        GetTree().ReloadCurrentScene();
+    }
     
     private void UpdateHealthUI()
     {
@@ -70,34 +158,26 @@ public partial class Player : CharacterBody2D
             _playerUI.UpdateHealth(_currentHealth, MaxHealth);
         }
     }
-    
-    // ============================================
-    // ПОЛУЧЕНИЕ УРОНА
-    // ============================================
+
     
     public void TakeDamage(int amount)
     {
-        if (_currentHealth <= 0)
+        if (_currentHealth <= 0 || _isDead)
             return;
         
         _currentHealth = Math.Max(0, _currentHealth - amount);
-        GD.Print($"Player took {amount} damage! Health: {_currentHealth}/{MaxHealth}");
         
         UpdateHealthUI();
         
-        // Эффект получения урона (мигание)
         Modulate = Colors.Red;
-        GetTree().CreateTimer(0.1).Timeout += () => Modulate = Colors.White;
+        GetTree().CreateTimer(0.1f).Timeout += () => Modulate = Colors.White;
         
         if (_currentHealth <= 0)
         {
             Die();
         }
     }
-    
-    // ============================================
-    // ЛЕЧЕНИЕ
-    // ============================================
+
     
     public bool Heal(int amount)
     {
@@ -107,24 +187,50 @@ public partial class Player : CharacterBody2D
         _currentHealth = Math.Min(MaxHealth, _currentHealth + amount);
         UpdateHealthUI();
         
-        GD.Print($"Player healed! Health: {_currentHealth}/{MaxHealth}");
-        
         return true;
     }
 
     private void Die()
     {
-        GD.Print("Player died!");
+        if (_isDead) return;
+        
+        _isDead = true;
+        
         SetCanMove(false);
+        ShowGameOver();
     }
 
-    // ============================================
-    // ФИЗИКА И ДВИЖЕНИЕ
-    // ============================================
     
     public override void _PhysicsProcess(double delta)
     {
+        if (_isDead) return;
+        
         float deltaF = (float)delta;
+
+        if (_shootCooldownTimer > 0)
+        {
+            _shootCooldownTimer -= deltaF;
+        }
+        
+        if (_shootAnimationTimer > 0)
+        {
+            _shootAnimationTimer -= deltaF;
+            if (_shootAnimationTimer <= 0)
+            {
+                _isShooting = false;
+            }
+        }
+
+        if (_isWaitingForAttack)
+        {
+            _attackDelayTimer -= deltaF;
+            if (_attackDelayTimer <= 0)
+            {
+                _isWaitingForAttack = false;
+                ShootInMovementDirection();
+                _shootCooldownTimer = ShootCooldown;
+            }
+        }
         
         CheckForLadder();
         
@@ -135,9 +241,6 @@ public partial class Player : CharacterBody2D
             inputDirection.Y = Input.GetAxis("ui_up", "ui_down");
         }
 
-        // ============================================
-        // ЛОГИКА ЛЕСТНИЦЫ
-        // ============================================
         
         if (_isOnLadder && !_isClimbing)
         {
@@ -172,10 +275,6 @@ public partial class Player : CharacterBody2D
         }
         else
         {
-            // ============================================
-            // ОБЫЧНОЕ ДВИЖЕНИЕ
-            // ============================================
-            
             if (!IsOnFloor())
             {
                 _velocity.Y += Gravity * deltaF;
@@ -199,87 +298,48 @@ public partial class Player : CharacterBody2D
             }
         }
 
-        // ============================================
-        // СТРЕЛЬБА (в направлении движения)
-        // ============================================
-        if (Input.IsActionJustPressed("shoot") && _shootCooldownTimer <= 0 && CanMove)
+        if (Input.IsActionJustPressed("shoot") && _shootCooldownTimer <= 0 && CanMove && !_isDead && !_isShooting && !_isWaitingForAttack)
         {
-            ShootInMovementDirection();
-            _shootCooldownTimer = ShootCooldown;
-        }
+            _isShooting = true;
+            _shootAnimationTimer = ShootAnimationDuration;
+            PlayAnimation(ShootAnimation);
 
-        if (_shootCooldownTimer > 0)
-        {
-            _shootCooldownTimer -= deltaF;
+            _isWaitingForAttack = true;
+            _attackDelayTimer = AttackDelay;
         }
 
         Velocity = _velocity;
         MoveAndSlide();
         
         UpdateFacingDirection();
+        UpdateAnimation();
     }
 
-    // ============================================
-    // АТАКА В НАПРАВЛЕНИИ ДВИЖЕНИЯ
-    // ============================================
     
     private void ShootInMovementDirection()
     {
-        // Направление атаки: туда, куда смотрит персонаж
         Vector2 direction = _isFacingRight ? Vector2.Right : Vector2.Left;
-        Vector2 spawnOffset = direction * 20f;
+        Vector2 spawnOffset = direction * 30f + new Vector2(0, -30f);;
         Vector2 spawnPosition = GlobalPosition + spawnOffset;
         
-        Bullet bullet = null;
-        if (BulletScene != null)
-        {
-            var instance = BulletScene.Instantiate();
-            bullet = instance as Bullet;
-            if (bullet == null)
-            {
-                GD.PrintErr("BulletScene must be a Bullet node with the Bullet script attached.");
-                return;
-            }
-        }
-        else
-        {
-            bullet = new Bullet();
-        }
-        
-        bullet.Initialize(direction, BulletSpeed, BulletLifeTime);
+        var bullet = BulletScene.Instantiate<Bullet>();
+        bullet.Initialize(direction, BulletSpeed, BulletLifeTime, BulletDamage, this);
         bullet.GlobalPosition = spawnPosition;
+        bullet.GlobalRotation = direction.Angle();
         
-        // Поворот пули в направлении выстрела
-        bullet.GlobalRotation = direction.X > 0 ? 0 : Mathf.Pi;
-        
-        var parent = GetParent();
-        if (parent != null)
-            parent.AddChild(bullet);
-        else
-            GetTree().Root.AddChild(bullet);
+        GetTree().Root.AddChild(bullet);
     }
 
-    // ============================================
-    // ОБНОВЛЕНИЕ НАПРАВЛЕНИЯ ВЗГЛЯДА
-    // ============================================
     
     private void UpdateFacingDirection()
     {
-        // Меняем направление в зависимости от горизонтального движения
         if (Math.Abs(_velocity.X) > 10f)
         {
             _isFacingRight = _velocity.X > 0;
+            FlipSprite(!_isFacingRight);
         }
-        
-        // Поворот спрайта (если есть AnimatedSprite2D)
-        // var sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
-        // if (sprite != null)
-        //     sprite.FlipH = !_isFacingRight;
     }
 
-    // ============================================
-    // ПОИСК ЛЕСТНИЦЫ
-    // ============================================
     
     private void CheckForLadder()
     {
@@ -310,9 +370,6 @@ public partial class Player : CharacterBody2D
         }
     }
 
-    // ============================================
-    // ПУБЛИЧНЫЕ МЕТОДЫ
-    // ============================================
     
     public void SetCanMove(bool canMove)
     {
@@ -332,75 +389,5 @@ public partial class Player : CharacterBody2D
     public void Teleport(Vector2 newPosition)
     {
         GlobalPosition = newPosition;
-    }
-}
-
-public partial class Bullet : Area2D
-{
-    private Vector2 _velocity = Vector2.Zero;
-    private float _lifeTime = 3.0f;
-    private float _timeAlive = 0.0f;
-    private bool _initialized = false;
-
-    public void Initialize(Vector2 direction, float speed, float lifeTime)
-    {
-        _velocity = direction.Normalized() * speed;
-        _lifeTime = lifeTime;
-        _timeAlive = 0.0f;
-        _initialized = true;
-        
-        AddToGroup("projectiles");
-    }
-
-    public override void _Ready()
-    {
-        SetupCollisionShape();
-        QueueRedraw();
-        
-        BodyEntered += OnBodyEntered;
-    }
-
-    public override void _PhysicsProcess(double delta)
-    {
-        if (!_initialized)
-            return;
-
-        Position += _velocity * (float)delta;
-        _timeAlive += (float)delta;
-
-        if (_timeAlive >= _lifeTime)
-        {
-            QueueFree();
-        }
-    }
-    
-    private void SetupCollisionShape()
-    {
-        if (GetNodeOrNull<CollisionShape2D>("CollisionShape2D") != null)
-            return;
-
-        var shape = new CircleShape2D();
-        shape.Radius = 6;
-        
-        var collisionShape = new CollisionShape2D();
-        collisionShape.Shape = shape;
-        AddChild(collisionShape);
-    }
-    
-    private void OnBodyEntered(Node2D body)
-    {
-        if (body.IsInGroup("enemies"))
-        {
-            if (body.HasMethod("TakeDamage"))
-            {
-                body.Call("TakeDamage", 25);
-            }
-            QueueFree();
-        }
-    }
-
-    public override void _Draw()
-    {
-        DrawCircle(Vector2.Zero, 6, Colors.Yellow);
     }
 }

@@ -2,9 +2,10 @@
 
 [ext_resource type="Texture2D" uid="uid://bjk0e7nj50tr5" path="res://2D models/Back_Roofs.jpeg" id="1_0gyft"]
 [ext_resource type="PackedScene" uid="uid://dgkwu3vu77i6e" path="res://Scenes/Ladder.tscn" id="2_2sg52"]
+[ext_resource type="PackedScene" uid="uid://pmb6un18k6el" path="res://Scenes/DeathZone.tscn" id="3_y6vx4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0gyft"]
-size = Vector2(459, 10)
+size = Vector2(461.5, 12)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_y6vx4"]
 size = Vector2(512.75, 15.75)
@@ -19,7 +20,7 @@ size = Vector2(586, 41)
 size = Vector2(409, 104)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_43mlh"]
-size = Vector2(513, 26)
+size = Vector2(541, 26)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cp0jt"]
 size = Vector2(211.75, 26)
@@ -33,6 +34,9 @@ size = Vector2(218, 32)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ncjpd"]
 size = Vector2(59.320812, 24.184393)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_m7vvj"]
+size = Vector2(16, 1341.5)
+
 [node name="Level3" type="Node2D" unique_id=294698406]
 
 [node name="BackRoofs" type="Sprite2D" parent="." unique_id=1865866635]
@@ -40,10 +44,12 @@ position = Vector2(1720, 256)
 scale = Vector2(2.5, 2.5)
 texture = ExtResource("1_0gyft")
 
-[node name="Location" type="StaticBody2D" parent="." unique_id=615575292]
+[node name="Location" type="StaticBody2D" parent="." unique_id=615575292 groups=["environment"]]
+collision_layer = 7
+collision_mask = 7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Location" unique_id=697324210]
-position = Vector2(382.5, 168)
+position = Vector2(379.25, 175)
 shape = SubResource("RectangleShape2D_0gyft")
 one_way_collision = true
 
@@ -67,7 +73,7 @@ position = Vector2(1990.5, 17)
 shape = SubResource("RectangleShape2D_084pi")
 
 [node name="CollisionShape2D7" type="CollisionShape2D" parent="Location" unique_id=513663552]
-position = Vector2(2337.5, 319)
+position = Vector2(2323.5, 319)
 shape = SubResource("RectangleShape2D_43mlh")
 
 [node name="CollisionShape2D8" type="CollisionShape2D" parent="Location" unique_id=655080190]
@@ -88,6 +94,14 @@ position = Vector2(2953.0515, -130.67157)
 rotation = -0.6981317
 scale = Vector2(0.9999996, 0.9999996)
 shape = SubResource("RectangleShape2D_ncjpd")
+
+[node name="CollisionShape2D19" type="CollisionShape2D" parent="Location" unique_id=440094214]
+position = Vector2(-7, 364)
+shape = SubResource("RectangleShape2D_m7vvj")
+
+[node name="CollisionShape2D20" type="CollisionShape2D" parent="Location" unique_id=1711908448]
+position = Vector2(3435, 364)
+shape = SubResource("RectangleShape2D_m7vvj")
 
 [node name="Ladder" type="Node2D" parent="." unique_id=312584003]
 position = Vector2(-969.505, -327.39)
@@ -121,3 +135,6 @@ position = Vector2(1834.015, 864.865)
 
 [node name="Ladder10" parent="Ladder" unique_id=1610977935 instance=ExtResource("2_2sg52")]
 position = Vector2(1834.015, 941.865)
+
+[node name="DeathZone" parent="." unique_id=1112082519 instance=ExtResource("3_y6vx4")]
+position = Vector2(1711, 934)
