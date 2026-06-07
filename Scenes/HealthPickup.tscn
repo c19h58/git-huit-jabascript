@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://cllssx8lmut2k"]
+
+[ext_resource type="Script" uid="uid://bk3jjjt3mfa6x" path="res://Scripts/HealthPickup.cs" id="1_i2lef"]
+[ext_resource type="Texture2D" uid="uid://bnhwvu76gijhi" path="res://2D models/Heal.png" id="1_m7rh5"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_i2lef"]
+radius = 16.03122
+
+[node name="HealthPickup" type="Area2D" unique_id=97459560]
+scale = Vector2(1.5, 1.5)
+script = ExtResource("1_i2lef")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=205115397]
+shape = SubResource("CircleShape2D_i2lef")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2071699061]
+scale = Vector2(0.05, 0.05)
+texture = ExtResource("1_m7rh5")

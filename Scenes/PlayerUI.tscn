@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://bs5lxf7qvdk57"]
+
+[ext_resource type="Script" uid="uid://ctmtuplb3i3r8" path="res://Scripts/PlayerUI.cs" id="1_8tgur"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d6n7v"]
+bg_color = Color(0.44254956, 0.2805014, 1, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8tgur"]
+bg_color = Color(0.4216376, 0.0022817827, 0.7861314, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="PlayerUI" type="CanvasLayer" unique_id=507709289]
+script = ExtResource("1_8tgur")
+
+[node name="UIContainer" type="Control" parent="." unique_id=1638872978]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HealthBar" type="ProgressBar" parent="UIContainer" unique_id=1398816375]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -48.0
+offset_right = 240.0
+offset_bottom = -21.0
+grow_vertical = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_d6n7v")
+theme_override_styles/fill = SubResource("StyleBoxFlat_8tgur")
+value = 100.0
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="UIContainer" unique_id=752095627]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -48.0
+offset_right = 240.0
+offset_bottom = -21.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.0692273, 0.5701974, 0.99999994, 1)
+text = "100/100"
+horizontal_alignment = 1
+vertical_alignment = 1

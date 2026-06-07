@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://v3mdpdflkwkc"]
+
+[ext_resource type="Script" uid="uid://d1hd22ilitwxe" path="res://Scripts/VictoryZone.cs" id="1_gscpv"]
+[ext_resource type="Texture2D" uid="uid://dyb2pg0u4b4et" path="res://2D models/GameWin.jpg" id="2_7v707"]
+[ext_resource type="Texture2D" uid="uid://221ukf7lkbsl" path="res://2D models/white_squre.jpg" id="3_7v707"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_13e7s"]
+size = Vector2(60, 130)
+
+[node name="VictoryZone" type="Area2D" unique_id=786260118]
+script = ExtResource("1_gscpv")
+VictoryScreenTexture = ExtResource("2_7v707")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1952691055]
+position = Vector2(0, -12)
+shape = SubResource("RectangleShape2D_13e7s")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1374182554]
+position = Vector2(0, -11.93)
+scale = Vector2(0.079, 0.174)
+texture = ExtResource("3_7v707")

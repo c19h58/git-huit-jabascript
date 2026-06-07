@@ -1,53 +1,74 @@
 [gd_scene format=3 uid="uid://n6epqrhg8fbo"]
 
-[ext_resource type="Texture2D" uid="uid://drr51ppysy0h0" path="res://2D models/Back_Street.png" id="1_llwst"]
-[ext_resource type="Texture2D" uid="uid://cif2e5evccm88" path="res://2D models/Gemini_Generated_Image_93g8cz93g8cz93g8-Photoroom.png" id="2_0plju"]
+[ext_resource type="Texture2D" uid="uid://dpoh0qyfpqaen" path="res://2D models/Back_Street.jpg" id="1_5awjf"]
+[ext_resource type="Texture2D" uid="uid://bmuox033wgmo" path="res://2D models/building.png" id="2_ms0wi"]
+[ext_resource type="Texture2D" uid="uid://bw2ufakw4jdvj" path="res://2D models/Bar.png" id="4_5awjf"]
+[ext_resource type="PackedScene" uid="uid://dgkwu3vu77i6e" path="res://Scenes/Ladder.tscn" id="4_n3cqh"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_llwst"]
-size = Vector2(2663, 49)
+size = Vector2(2663, 64)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_0plju"]
-size = Vector2(247, 49)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ms0wi"]
-size = Vector2(191, 29)
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_5awjf"]
+a = Vector2(2664, 599)
+b = Vector2(2665, -10)
 
 [node name="Level2" type="Node2D" unique_id=306044500]
 
 [node name="TextureRect" type="TextureRect" parent="." unique_id=1685202542]
 offset_right = 2663.0
 offset_bottom = 648.0
-texture = ExtResource("1_llwst")
+texture = ExtResource("1_5awjf")
 expand_mode = 1
 metadata/_edit_lock_ = true
+
+[node name="Building" type="Sprite2D" parent="." unique_id=45297362]
+position = Vector2(2710, 223.00002)
+scale = Vector2(1.0976565, 1.5755208)
+texture = ExtResource("2_ms0wi")
+
+[node name="Bar" type="Sprite2D" parent="." unique_id=1383006020]
+position = Vector2(115, 360.99997)
+scale = Vector2(0.35, 0.35)
+texture = ExtResource("4_5awjf")
 
 [node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=153129637]
-metadata/_edit_lock_ = true
+collision_layer = 7
+collision_mask = 7
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=1661630142]
-position = Vector2(1331.5, 623.5)
+position = Vector2(1331.5, 616)
 shape = SubResource("RectangleShape2D_llwst")
-metadata/_edit_lock_ = true
 
-[node name="StaticBody2D2" type="StaticBody2D" parent="." unique_id=1889671745]
-position = Vector2(883, 309)
-metadata/_edit_lock_ = true
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D" unique_id=1025029558]
+shape = SubResource("SegmentShape2D_5awjf")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2" unique_id=1205926080]
-position = Vector2(1480, 274)
-rotation = -0.31066862
-shape = SubResource("RectangleShape2D_0plju")
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D" unique_id=559077459]
+position = Vector2(-2664.425, 0)
+shape = SubResource("SegmentShape2D_5awjf")
 
-[node name="TextureRect" type="TextureRect" parent="StaticBody2D2/CollisionShape2D" unique_id=1456472300]
-offset_left = 173.93997
-offset_top = -28.176182
-offset_right = 421.08057
-offset_bottom = 21.823818
-rotation = 0.13264503
-scale = Vector2(-1, 1)
-texture = ExtResource("2_0plju")
-expand_mode = 1
+[node name="Ladder" type="Node2D" parent="." unique_id=999506268]
+position = Vector2(-1201.925, -20.385)
 
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D2" unique_id=697894360]
-position = Vector2(1685.5, 227.5)
-shape = SubResource("RectangleShape2D_ms0wi")
+[node name="Ladder" parent="Ladder" unique_id=1068320418 instance=ExtResource("4_n3cqh")]
+position = Vector2(3824.3901, 561.26)
+
+[node name="Ladder2" parent="Ladder" unique_id=529198174 instance=ExtResource("4_n3cqh")]
+position = Vector2(3824.3901, 484.26)
+
+[node name="Ladder3" parent="Ladder" unique_id=188199720 instance=ExtResource("4_n3cqh")]
+position = Vector2(3824.3901, 407.26)
+
+[node name="Ladder4" parent="Ladder" unique_id=509474764 instance=ExtResource("4_n3cqh")]
+position = Vector2(3824.3901, 330.26)
+
+[node name="Ladder5" parent="Ladder" unique_id=1424559440 instance=ExtResource("4_n3cqh")]
+position = Vector2(3824.3901, 253.26001)
+
+[node name="Ladder6" parent="Ladder" unique_id=208025194 instance=ExtResource("4_n3cqh")]
+position = Vector2(3824.3901, 176.26001)
+
+[node name="Ladder7" parent="Ladder" unique_id=188184168 instance=ExtResource("4_n3cqh")]
+position = Vector2(3824.3901, 99.259995)
+
+[node name="Ladder8" parent="Ladder" unique_id=1881755985 instance=ExtResource("4_n3cqh")]
+position = Vector2(3824.3901, 22.26)

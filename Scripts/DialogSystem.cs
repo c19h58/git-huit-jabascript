@@ -12,24 +12,9 @@ public partial class DialogSystem : CanvasLayer
     [Export] private TextureRect _clickIndicator;
     [Export] private float _fadeDuration = 1.0f;
     
-    // Настройки камеры после прикрепления
-    [Export] private Vector2 _attachedCameraZoom = new Vector2(1.0f, 1.0f);
-    
-    // Границы уровней
-    private Rect2 _level1Bounds = new Rect2(0, 0, 1152, 648);
-    private Rect2 _level2Bounds = new Rect2(1200, 0, 2663, 648);
-    private Rect2 _currentLevelBounds;
-    
-    // Ссылки на узлы
-    private Camera2D _gameCamera;
-    private Player _player;
-    private Node2D _mainNode;
-    
-    // Позиционирование диалога
     [Export] private bool _centerBottom = true;
     [Export] private int _margin = 20;
     
-    // Очередь диалогов
     private Queue<DialogLine> _dialogQueue = new Queue<DialogLine>();
     private bool _isTyping = false;
     private bool _canProceed = false;
@@ -38,162 +23,41 @@ public partial class DialogSystem : CanvasLayer
     private bool _isTransitioning = false;
     private int _currentCharIndex = 0;
     private string _currentTypingText = "";
-    private bool _cameraAttached = false;
     
-    // Размер окна просмотра
+    private Player _player;
+    private CameraManager _cameraManager;
+    private Node2D _mainNode;
     private Vector2 _viewportSize;
-    
+
     public override void _Ready()
     {
-        // Настройка таймера
         _typeTimer = new Timer();
         _typeTimer.WaitTime = 0.03;
         _typeTimer.OneShot = true;
         AddChild(_typeTimer);
         
-        // Получаем размер окна
         _viewportSize = GetViewport().GetVisibleRect().Size;
         
-        // Поиск узлов в Main
         _mainNode = GetNodeOrNull<Node2D>("/root/Main");
-        if (_mainNode == null)
+        
+        if (_mainNode != null)
         {
-            GD.PrintErr("Main node not found!");
-            return;
+            _player = _mainNode.GetNodeOrNull<Player>("Player");
+            _cameraManager = _mainNode.GetNodeOrNull<CameraManager>("CameraManager");
         }
         
-        _gameCamera = _mainNode.GetNodeOrNull<Camera2D>("Camera2D");
-        if (_gameCamera == null)
-        {
-            GD.PrintErr("Camera2D not found!");
-            return;
-        }
+        if (_player != null) _player.SetCanMove(false);
         
-        _player = _mainNode.GetNodeOrNull<Player>("Player");
-        if (_player == null)
-        {
-            GD.PrintErr("Player not found!");
-            return;
-        }
-        
-        // Настройка камеры
-        _gameCamera.Zoom = new Vector2(1.0f, 1.0f);
-        _gameCamera.PositionSmoothingEnabled = true;
-        _gameCamera.PositionSmoothingSpeed = 5.0f;
-        
-        // Отключаем встроенные лимиты камеры
-        _gameCamera.LimitLeft = int.MinValue / 2;
-        _gameCamera.LimitRight = int.MaxValue / 2;
-        _gameCamera.LimitTop = int.MinValue / 2;
-        _gameCamera.LimitBottom = int.MaxValue / 2;
-        
-        // Устанавливаем начальные границы (уровень 1)
-        _currentLevelBounds = _level1Bounds;
-        
-        // Ставим камеру на центр уровня 1
-        Vector2 cameraCenter = new Vector2(
-            _currentLevelBounds.Position.X + _currentLevelBounds.Size.X / 2,
-            _currentLevelBounds.Position.Y + _currentLevelBounds.Size.Y / 2
-        );
-        _gameCamera.GlobalPosition = cameraCenter;
-        
-        // Отключаем движение игрока во время диалога
-        _player.SetCanMove(false);
-        
-        // Прячем диалоговое окно
         if (_dialogContainer != null)
         {
             _dialogContainer.Modulate = new Color(1, 1, 1, 0);
             _dialogContainer.Visible = false;
         }
         
-        // Затемнение
-        if (_fadePanel != null)
-        {
-            _fadePanel.Modulate = new Color(0, 0, 0, 0);
-        }
-        
-        GD.Print($"Viewport size: {_viewportSize}");
-        GD.Print($"Camera start position: {_gameCamera.GlobalPosition}");
+        if (_fadePanel != null) _fadePanel.Modulate = new Color(0, 0, 0, 0);
         
         LoadDialogues();
         StartDialog();
-    }
-    
-    private Vector2 GetClampedCameraPosition(Vector2 targetPos, Vector2 cameraZoom)
-    {
-        // Вычисляем половину области видимости камеры с учётом зума
-        float halfWidth = (_viewportSize.X * cameraZoom.X) / 2;
-        float halfHeight = (_viewportSize.Y * cameraZoom.Y) / 2;
-        
-        // Вычисляем минимальные и максимальные границы для камеры
-        // Камера не должна выходить за края уровня
-        float minX = _currentLevelBounds.Position.X + halfWidth;
-        float maxX = _currentLevelBounds.Position.X + _currentLevelBounds.Size.X - halfWidth;
-        float minY = _currentLevelBounds.Position.Y + halfHeight;
-        float maxY = _currentLevelBounds.Position.Y + _currentLevelBounds.Size.Y - halfHeight;
-        
-        // Если уровень меньше области видимости камеры по горизонтали
-        if (minX > maxX)
-        {
-            float centerX = _currentLevelBounds.Position.X + _currentLevelBounds.Size.X / 2;
-            minX = maxX = centerX;
-        }
-        
-        // Если уровень меньше области видимости камеры по вертикали
-        if (minY > maxY)
-        {
-            float centerY = _currentLevelBounds.Position.Y + _currentLevelBounds.Size.Y / 2;
-            minY = maxY = centerY;
-        }
-        
-        // Ограничиваем позицию камеры
-        Vector2 clampedPos = targetPos;
-        clampedPos.X = Mathf.Clamp(clampedPos.X, minX, maxX);
-        clampedPos.Y = Mathf.Clamp(clampedPos.Y, minY, maxY);
-        
-        return clampedPos;
-    }
-    
-    private void SetCameraPosition(Vector2 targetPos, Vector2 cameraZoom)
-    {
-        if (_gameCamera == null) return;
-        
-        Vector2 clampedPos = GetClampedCameraPosition(targetPos, cameraZoom);
-        _gameCamera.GlobalPosition = clampedPos;
-    }
-    
-    private void AttachCameraToPlayerOnLevel2()
-    {
-        if (_player == null || _gameCamera == null) return;
-        
-        // Меняем границы на уровень 2
-        _currentLevelBounds = _level2Bounds;
-        
-        // Устанавливаем новый зум
-        _gameCamera.Zoom = _attachedCameraZoom;
-        
-        // Устанавливаем позицию камеры на игрока с учётом границ
-        Vector2 targetPos = _player.GetPlayerPosition();
-        SetCameraPosition(targetPos, _attachedCameraZoom);
-        
-        // Включаем движение игрока
-        _player.SetCanMove(true);
-        
-        _cameraAttached = true;
-        
-        // Отладочная информация
-        float halfWidth = (_viewportSize.X * _attachedCameraZoom.X) / 2;
-        float halfHeight = (_viewportSize.Y * _attachedCameraZoom.Y) / 2;
-        
-        GD.Print("=== Camera attached to player on Level2 ===");
-        GD.Print($"Camera zoom: {_gameCamera.Zoom}");
-        GD.Print($"Camera position: {_gameCamera.GlobalPosition}");
-        GD.Print($"Player position: {_player.GetPlayerPosition()}");
-        GD.Print($"Level2 bounds: {_currentLevelBounds}");
-        GD.Print($"Half view size: ({halfWidth}, {halfHeight})");
-        GD.Print($"Camera limits - X: [{_currentLevelBounds.Position.X + halfWidth}, {_currentLevelBounds.Position.X + _currentLevelBounds.Size.X - halfWidth}]");
-        GD.Print($"Camera limits - Y: [{_currentLevelBounds.Position.Y + halfHeight}, {_currentLevelBounds.Position.Y + _currentLevelBounds.Size.Y - halfHeight}]");
     }
     
     private void LoadDialogues()
@@ -254,9 +118,7 @@ public partial class DialogSystem : CanvasLayer
     
     private void StartClickBlink()
     {
-        if (_currentTween != null && _currentTween.IsValid())
-            _currentTween.Kill();
-        
+        if (_currentTween != null && _currentTween.IsValid()) _currentTween.Kill();
         if (_clickIndicator == null) return;
         
         _currentTween = CreateTween();
@@ -267,18 +129,15 @@ public partial class DialogSystem : CanvasLayer
     
     private void StopClickBlink()
     {
-        if (_currentTween != null && _currentTween.IsValid())
-            _currentTween.Kill();
-        
-        if (_clickIndicator != null)
-            _clickIndicator.Modulate = new Color(1, 1, 1, 1);
+        if (_currentTween != null && _currentTween.IsValid()) _currentTween.Kill();
+        if (_clickIndicator != null) _clickIndicator.Modulate = new Color(1, 1, 1, 1);
     }
     
     private void ShowNextLine()
     {
         if (_dialogQueue.Count == 0)
         {
-            EndDialogAndSwitchToLevel2();
+            EndDialogAndTransitionToLevel2();
             return;
         }
         
@@ -316,8 +175,7 @@ public partial class DialogSystem : CanvasLayer
             
             _typeTimer.Timeout -= TypeNextChar;
             
-            if (_clickIndicator != null && _clickIndicator.Visible)
-                StartClickBlink();
+            if (_clickIndicator != null && _clickIndicator.Visible) StartClickBlink();
         }
     }
     
@@ -348,15 +206,13 @@ public partial class DialogSystem : CanvasLayer
         }
     }
     
-    private async void EndDialogAndSwitchToLevel2()
+    private async void EndDialogAndTransitionToLevel2()
     {
         _isTransitioning = true;
         _canProceed = false;
         
-        if (_clickIndicator != null)
-            _clickIndicator.Visible = false;
+        if (_clickIndicator != null) _clickIndicator.Visible = false;
         
-        // Прячем диалоговое окно
         if (_dialogContainer != null)
         {
             _currentTween = CreateTween();
@@ -366,42 +222,22 @@ public partial class DialogSystem : CanvasLayer
             _dialogContainer.Visible = false;
         }
         
-        // Затемняем экран
-        if (_fadePanel != null)
+        Node2D mainNode = GetNodeOrNull<Node2D>("/root/Main");
+        if (mainNode != null)
         {
-            _currentTween = CreateTween();
-            _currentTween.SetTrans(Tween.TransitionType.Quad);
-            _currentTween.SetEase(Tween.EaseType.InOut);
-            _currentTween.TweenProperty(_fadePanel, "modulate:a", 1.0f, _fadeDuration);
-            await ToSignal(_currentTween, Tween.SignalName.Finished);
+            _cameraManager = mainNode.GetNodeOrNull<CameraManager>("CameraManager");
         }
         
-        // Прикрепляем камеру к игроку на уровне 2
-        AttachCameraToPlayerOnLevel2();
-        
-        // Убираем затемнение
-        if (_fadePanel != null)
+        if (_cameraManager != null)
         {
-            _currentTween = CreateTween();
-            _currentTween.SetTrans(Tween.TransitionType.Quad);
-            _currentTween.SetEase(Tween.EaseType.InOut);
-            _currentTween.TweenProperty(_fadePanel, "modulate:a", 0f, _fadeDuration);
-            await ToSignal(_currentTween, Tween.SignalName.Finished);
+            await _cameraManager.AttachToPlayerOnLevel2();
+        }
+        else
+        {
+            if (_player != null) _player.SetCanMove(true);
         }
         
         _isTransitioning = false;
-        
-        GD.Print("Dialog ended, camera attached to player on Level2!");
-    }
-    
-    public override void _Process(double delta)
-    {
-        // Если камера прикреплена, следуем за игроком с учётом границ
-        if (_cameraAttached && _gameCamera != null && _player != null)
-        {
-            Vector2 targetPos = _player.GetPlayerPosition();
-            SetCameraPosition(targetPos, _gameCamera.Zoom);
-        }
     }
     
     public override void _ExitTree()
