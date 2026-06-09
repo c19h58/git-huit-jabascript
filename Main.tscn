@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://cthlwsf3cggy8" path="res://Scenes/Level4.tscn" id="4_trn2v"]
 [ext_resource type="PackedScene" uid="uid://b4u1ls5lfd6dl" path="res://Scenes/Bullet.tscn" id="6_wkp8b"]
 [ext_resource type="PackedScene" uid="uid://bs5lxf7qvdk57" path="res://Scenes/PlayerUI.tscn" id="7_03owx"]
-[ext_resource type="Texture2D" path="res://2D models/GameOver.png" id="7_c6i3y"]
+[ext_resource type="Texture2D" uid="uid://d4g56l2nsrwoa" path="res://2D models/GameOver.png" id="7_c6i3y"]
 [ext_resource type="PackedScene" uid="uid://k3u47idkhw4s" path="res://Scenes/LevelTrigger.tscn" id="7_lgr22"]
 [ext_resource type="Texture2D" uid="uid://bapg3smfnbcb5" path="res://Animation/1-Photoroom.png" id="8_xrxkg"]
 [ext_resource type="Texture2D" uid="uid://cdt2mwx2cxnt1" path="res://Animation/jump1-Photoroom.png" id="9_sqvbp"]
